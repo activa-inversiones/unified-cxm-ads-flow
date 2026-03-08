@@ -33,16 +33,16 @@ if (firebaseConfigStr && firebaseConfigStr !== "{}" && firebaseConfigStr !== und
     }
 }
 
-// --- 2. GESTIÓN DEL DASHBOARD (Evita el error ENOENT) ---
+// --- 2. GESTIÓN DEL DASHBOARD (Sirve el gráfico) ---
+// Estas líneas permiten que el servidor encuentre el index.html en cualquier ubicación
 app.use(express.static('public'));
 app.use(express.static('.'));
 
 app.get('/', (req, res) => {
-    // Busca el archivo en orden de prioridad
+    // Busca el archivo en orden de prioridad para evitar el error 'Not Found'
     const locations = [
-        path.join(__dirname, 'public', 'index.html'),
         path.join(__dirname, 'index.html'),
-        path.join(process.cwd(), 'public', 'index.html'),
+        path.join(__dirname, 'public', 'index.html'),
         path.join(process.cwd(), 'index.html')
     ];
 
@@ -55,10 +55,8 @@ app.get('/', (req, res) => {
             <body style="background:#030712;color:#f3f4f6;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;">
                 <div style="border:1px solid #1e293b;padding:50px;border-radius:30px;background:#0f172a;max-width:500px;">
                     <h1 style="color:#06b6d4;margin-bottom:20px;">🚀 Motor Elite v4.3 Online</h1>
-                    <p style="line-height:1.6;">El servidor funciona, pero no encuentro el archivo <b>index.html</b>.</p>
-                    <p style="font-size:14px;color:#64748b;background:#1e293b;padding:15px;border-radius:10px;margin-top:20px;">
-                        Sube el archivo <b>index.html</b> a la raíz de tu GitHub.
-                    </p>
+                    <p style="line-height:1.6;">Servidor activo, pero falta el archivo <b>index.html</b> en GitHub.</p>
+                    <p style="font-size:12px;color:#64748b;">Asegúrate de subir el archivo del tablero al repositorio principal.</p>
                 </div>
             </body>
         `);
@@ -69,6 +67,9 @@ app.get('/', (req, res) => {
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const ZOHO_REFRESH_TOKEN = process.env.ZOHO_REFRESH_TOKEN;
 
+/**
+ * Obtiene un Access Token fresco de Zoho usando el Refresh Token permanente.
+ */
 async function getZohoToken() {
     try {
         const params = new URLSearchParams();
@@ -78,23 +79,29 @@ async function getZohoToken() {
         params.append('grant_type', 'refresh_token');
         const res = await axios.post('https://accounts.zoho.com/oauth/v2/token', params);
         return res.data.access_token;
-    } catch (e) { return null; }
+    } catch (e) { 
+        console.error("❌ [Zoho] Error renovando token.");
+        return null; 
+    }
 }
 
 // --- 4. WEBHOOKS (Meta Ads Flow) ---
 
+// Verificación del Webhook por parte de Meta
 app.get('/webhook/meta', (req, res) => {
     if (req.query['hub.verify_token'] === process.env.META_VERIFY_TOKEN) {
         res.status(200).send(req.query['hub.challenge']);
     } else { res.sendStatus(403); }
 });
 
+// Recepción y procesamiento de Leads en tiempo real
 app.post('/webhook/meta', async (req, res) => {
     const leadId = req.body.entry?.[0]?.changes?.[0]?.value?.leadgen_id;
     if (leadId) {
         console.log(`🚀 [Incoming] Procesando Lead ID: ${leadId}`);
         try {
             const fbToken = process.env.META_ACCESS_TOKEN;
+            // Consultamos los detalles del lead a la API de Meta
             const fbRes = await axios.get(`https://graph.facebook.com/v22.0/${leadId}?access_token=${fbToken}`);
             const data = fbRes.data;
 
@@ -105,7 +112,7 @@ app.post('/webhook/meta', async (req, res) => {
                 source: "Meta Ads Elite"
             };
 
-            // Registro en Firestore para el Dashboard
+            // Registro en Firestore para el historial del Dashboard
             if (db) {
                 const appId = process.env.APP_ID || 'activa-elite';
                 await setDoc(doc(collection(db, `artifacts/${appId}/public/data/leads`), leadId), {
@@ -114,6 +121,7 @@ app.post('/webhook/meta', async (req, res) => {
                 });
             }
 
+            // Envío a Zoho CRM
             const zohoToken = await getZohoToken();
             if (zohoToken) {
                 await axios.post("https://www.zohoapis.com/crm/v2/Leads", {
@@ -125,10 +133,10 @@ app.post('/webhook/meta', async (req, res) => {
                         "Lead_Source": "Meta Ads"
                     }]
                 }, { headers: { 'Authorization': 'Zoho-oauthtoken ' + zohoToken } });
-                console.log(`🏁 [Success] Lead ${leadInfo.name} enviado a Zoho.`);
+                console.log(`🏁 [Success] Lead ${leadInfo.name} enviado a Zoho CRM.`);
             }
         } catch (error) {
-            console.error("❌ [Error]:", error.response?.data || error.message);
+            console.error("❌ [Error Flow]:", error.response?.data || error.message);
         }
     }
     res.sendStatus(200);
