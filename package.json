@@ -1,7 +1,7 @@
 {
   "name": "unified-cxm-ads-flow",
-  "version": "1.2.0",
-  "description": "Conector inteligente de Ads con persistencia Firestore",
+  "version": "1.4.3",
+  "description": "Ads Intelligence Hub - Mode Ferrari v4.3",
   "main": "index.js",
   "type": "module",
   "scripts": {
