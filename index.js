@@ -1,122 +1,150 @@
-// Central de Inteligencia de Tráfico - Activa Inversiones Elite
+/**
+ * 🏎️ UNIFIED-CXM ADS FLOW - MODO FERRARI v2.2 (DEFINITIVO)
+ * Ecosistema: Meta Ads + Google Ads + TikTok + OpenAI + Zoho CRM + Firebase
+ * Diseñado para dominar el mercado de ventanas premium en la Araucanía.
+ */
+
 import express from 'express';
 import axios from 'axios';
-import crypto from 'crypto';
-import { initializeApp, getApps } from 'firebase/app';
+import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, setDoc, collection } from 'firebase/firestore';
 import { getAuth, signInWithCustomToken } from 'firebase/auth';
 
 const app = express();
 app.use(express.json());
 
-// --- CONFIGURACIÓN FIREBASE (Control de Errores) ---
+// --- 1. MOTOR DE PERSISTENCIA (Firebase) ---
 let db, auth;
 const firebaseConfigStr = process.env.FIREBASE_CONFIG;
-const appId = process.env.APP_ID || 'default-app-id';
+const appId = process.env.APP_ID || 'activa-elite-cxm';
 
-if (firebaseConfigStr && firebaseConfigStr !== "{}") {
+if (firebaseConfigStr && firebaseConfigStr !== "{}" && firebaseConfigStr !== undefined) {
     try {
         const firebaseConfig = JSON.parse(firebaseConfigStr);
         const firebaseApp = initializeApp(firebaseConfig);
         db = getFirestore(firebaseApp);
         auth = getAuth(firebaseApp);
-        console.log("✔ Firebase inicializado correctamente.");
+        console.log("✔️ [Engine] Firestore conectado para historial de leads.");
     } catch (e) {
-        console.error("❌ Error parseando FIREBASE_CONFIG:", e.message);
-    }
-} else {
-    console.warn("⚠️ Advertencia: FIREBASE_CONFIG no detectada. El historial no se guardará.");
-}
-
-// --- CONFIGURACIÓN DE IA ---
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const MODEL = "gemini-2.5-flash-preview-09-2025";
-
-async function authenticate() {
-    if (auth && process.env.INITIAL_AUTH_TOKEN) {
-        try {
-            await signInWithCustomToken(auth, process.env.INITIAL_AUTH_TOKEN);
-        } catch (e) {
-            console.error("Auth error:", e.message);
-        }
+        console.warn("⚠️ [Engine] Firebase no detectado. Modo 'Sin Historial' activado.");
     }
 }
 
-async function calificarLead(leadData) {
-    if (!GEMINI_API_KEY) return { score: 5, clase: "Normal", razon: "IA no configurada" };
-    
-    const prompt = `Analiza este prospecto para venta de ventanas premium en Chile: ${JSON.stringify(leadData)}. ¿Es una constructora o un proyecto de alto valor? Responde estrictamente en JSON: { "score": 1-10, "clase": "VIP"|"Normal", "razon": "explicación breve" }`;
+// --- 2. INTELIGENCIA ARTIFICIAL (OpenAI GPT-4o-mini) ---
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+/**
+ * AI Lead Scoring Engine
+ */
+async function runAiLeadScoring(leadData) {
+    if (!OPENAI_API_KEY) return { score: 5, clase: "Normal", razon: "IA no configurada" };
+
+    const prompt = `Analiza este lead para venta de ventanas de PVC Activa en Chile: ${JSON.stringify(leadData)}.
+    Identifica si es un cliente de alto ticket: ¿Constructora? ¿Hotel? ¿Proyecto inmobiliario en Pucón/Villarrica?
+    Responde estrictamente en JSON: { "score": 1-10, "clase": "VIP"|"Normal", "razon": "breve explicacion comercial" }`;
+
     try {
-        const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + MODEL + ':generateContent?key=' + GEMINI_API_KEY;
-        const res = await axios.post(url, {
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { responseMimeType: "application/json" }
-        });
-        return JSON.parse(res.data.candidates[0].content.parts[0].text);
+        const res = await axios.post('https://api.openai.com/v1/chat/completions', {
+            model: "gpt-4o-mini",
+            messages: [{ role: "system", content: "Analista Senior Inmobiliario." }, { role: "user", content: prompt }],
+            response_format: { type: "json_object" }
+        }, { headers: { 'Authorization': 'Bearer ' + OPENAI_API_KEY } });
+        return JSON.parse(res.data.choices[0].message.content);
     } catch (e) {
-        return { score: 5, clase: "Normal", razon: "Error de análisis IA" };
+        return { score: 5, clase: "Normal", razon: "Error preventivo en motor IA" };
     }
 }
 
-// Webhook para Meta Ads - Verificación
+// --- 3. MOTOR DE CRM (Zoho Automatic Refresh) ---
+const ZOHO_CLIENT_ID = process.env.ZOHO_CLIENT_ID;
+const ZOHO_CLIENT_SECRET = process.env.ZOHO_CLIENT_SECRET;
+const ZOHO_REFRESH_TOKEN = process.env.ZOHO_REFRESH_TOKEN;
+
+async function getFreshZohoToken() {
+    try {
+        const params = new URLSearchParams();
+        params.append('refresh_token', ZOHO_REFRESH_TOKEN);
+        params.append('client_id', ZOHO_CLIENT_ID);
+        params.append('client_secret', ZOHO_CLIENT_SECRET);
+        params.append('grant_type', 'refresh_token');
+        const res = await axios.post('https://accounts.zoho.com/oauth/v2/token', params);
+        return res.data.access_token;
+    } catch (e) {
+        console.error("❌ [Zoho] Error de refresco:", e.message);
+        return null;
+    }
+}
+
+// --- 4. RECEPCIÓN MULTI-ADS ---
+
+// A. WEBHOOK META (FB/IG)
 app.get('/webhook/meta', (req, res) => {
     if (req.query['hub.verify_token'] === process.env.META_VERIFY_TOKEN) {
         res.status(200).send(req.query['hub.challenge']);
-    } else {
-        res.sendStatus(403);
-    }
+    } else { res.sendStatus(403); }
 });
 
-// Webhook para Meta Ads - Recepción de Datos
 app.post('/webhook/meta', async (req, res) => {
     const leadId = req.body.entry?.[0]?.changes?.[0]?.value?.leadgen_id;
     if (leadId) {
         try {
-            const fbRes = await axios.get('https://graph.facebook.com/v18.0/' + leadId + '?access_token=' + process.env.META_ACCESS_TOKEN);
+            const fbToken = process.env.META_ACCESS_TOKEN;
+            const fbRes = await axios.get('https://graph.facebook.com/v22.0/' + leadId + '?access_token=' + fbToken);
             const data = fbRes.data;
             const leadInfo = {
-                name: data.field_data.find(f => f.name === 'full_name')?.values[0] || "Cliente Meta",
-                email: data.field_data.find(f => f.name === 'email')?.values[0],
-                phone: data.field_data.find(f => f.name === 'phone_number')?.values[0],
-                source: "Meta Ads"
+                name: data.field_data?.find(f => f.name === 'full_name')?.values[0] || "Cliente Meta",
+                email: data.field_data?.find(f => f.name === 'email')?.values[0] || "",
+                phone: data.field_data?.find(f => f.name === 'phone_number')?.values[0] || "",
+                source: "Meta Ads Araucania"
             };
 
-            const score = await calificarLead(leadInfo);
+            const score = await runAiLeadScoring(leadInfo);
+            const zohoToken = await getFreshZohoToken();
 
-            // Guardar en Firestore si está disponible
-            if (db) {
-                await authenticate();
-                const leadRef = doc(collection(db, 'artifacts/' + appId + '/public/data/leads'), leadId);
-                await setDoc(leadRef, { ...leadInfo, score, timestamp: Date.now() });
+            if (zohoToken) {
+                await axios.post("https://www.zohoapis.com/crm/v2/Leads", {
+                    data: [{
+                        "Last_Name": leadInfo.name,
+                        "Email": leadInfo.email,
+                        "Phone": leadInfo.phone,
+                        "Description": `[GPT-Score: ${score.score}] ${score.razon}`,
+                        "Rating": score.clase === "VIP" ? "Alta" : "Media"
+                    }]
+                }, { headers: { 'Authorization': 'Zoho-oauthtoken ' + zohoToken } });
+                console.log(`🏁 Lead Meta enviado a Zoho: ${leadInfo.name}`);
             }
+        } catch (e) { console.error("❌ Error Meta:", e.message); }
+    }
+    res.sendStatus(200);
+});
 
-            // Inyección en Zoho CRM
-            const zohoToken = process.env.ZOHO_ACCESS_TOKEN;
+// B. WEBHOOK GOOGLE ADS (Lead Forms)
+app.post('/webhook/google', async (req, res) => {
+    try {
+        const data = req.body;
+        const leadInfo = {
+            name: data.user_column_data?.find(c => c.column_id === 'FULL_NAME')?.string_value || "Cliente Google",
+            email: data.user_column_data?.find(c => c.column_id === 'EMAIL')?.string_value || "",
+            phone: data.user_column_data?.find(c => c.column_id === 'PHONE_NUMBER')?.string_value || "",
+            source: "Google Search Ads",
+            gclid: data.google_key
+        };
+        const score = await runAiLeadScoring(leadInfo);
+        const zohoToken = await getFreshZohoToken();
+        if (zohoToken) {
             await axios.post("https://www.zohoapis.com/crm/v2/Leads", {
                 data: [{
                     "Last_Name": leadInfo.name,
                     "Email": leadInfo.email,
                     "Phone": leadInfo.phone,
-                    "Description": "[IA Score: " + score.score + "] " + score.razon,
-                    "Lead_Source": "Meta Ads Araucanía"
+                    "Description": `[GPT-Score: ${score.score}] ${score.razon} | GCLID: ${leadInfo.gclid}`,
+                    "Google_Click_ID": leadInfo.gclid // Debes crear este campo en Zoho
                 }]
-            }, { 
-                headers: { 'Authorization': 'Zoho-oauthtoken ' + zohoToken } 
-            });
-
-            console.log("✔ Lead de Meta procesado: " + leadInfo.name);
-        } catch (e) {
-            console.error("Error procesando lead:", e.message);
+            }, { headers: { 'Authorization': 'Zoho-oauthtoken ' + zohoToken } });
         }
-    }
-    res.sendStatus(200);
-});
-
-// Endpoint para TikTok Ads (Events API)
-app.post('/webhook/tiktok', async (req, res) => {
-    console.log("Recibido evento de TikTok");
+    } catch (e) { console.error("❌ Error Google:", e.message); }
     res.sendStatus(200);
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log('🚀 CXM Ads Flow Elite activo en puerto ' + PORT));
+app.listen(PORT, () => console.log(`🏎️ ACTIVA ELITE v2.2 ENGINE READY ON PORT ${PORT}`));
