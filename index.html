@@ -1,151 +1,97 @@
-/**
- * 🏎️ UNIFIED-CXM ADS FLOW - MODO FERRARI v4.3 (FINAL PRODUCTION)
- * Central de Inteligencia: Meta Ads + Google Ads + OpenAI + Zoho CRM
- * v4.3: Smart Directory Discovery & Permanent Token Optimization
- */
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activa Elite - Command Center v4.3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://gs.jurieo.com/gemini/fonts-googleapis/css2?family=Inter:wght@300;400;600;700;900&family=JetBrains+Mono&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #030712; color: #f3f4f6; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .glass { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .live-pulse { height: 10px; width: 10px; background-color: #10b981; border-radius: 50%; display: inline-block; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #06b6d4; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-gray-950 to-black overflow-x-hidden">
 
-import express from 'express';
-import axios from 'axios';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, setDoc, collection, serverTimestamp } from 'firebase/firestore';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const app = express();
-app.use(express.json());
-
-// --- 1. CONFIGURACIÓN DE PERSISTENCIA (Firebase) ---
-const firebaseConfigStr = process.env.FIREBASE_CONFIG;
-let db;
-
-if (firebaseConfigStr && firebaseConfigStr !== "{}" && firebaseConfigStr !== undefined) {
-    try {
-        const firebaseConfig = JSON.parse(firebaseConfigStr);
-        const firebaseApp = initializeApp(firebaseConfig);
-        db = getFirestore(firebaseApp);
-        console.log("✔️ [Firebase] Persistencia de datos activada.");
-    } catch (e) {
-        console.warn("⚠️ [Firebase] Operando en modo volátil (Sin BD).");
-    }
-}
-
-// --- 2. GESTIÓN DEL DASHBOARD (Sirve el gráfico) ---
-// Estas líneas permiten que el servidor encuentre el index.html en cualquier ubicación
-app.use(express.static('public'));
-app.use(express.static('.'));
-
-app.get('/', (req, res) => {
-    // Busca el archivo en orden de prioridad para evitar el error 'Not Found'
-    const locations = [
-        path.join(__dirname, 'index.html'),
-        path.join(__dirname, 'public', 'index.html'),
-        path.join(process.cwd(), 'index.html')
-    ];
-
-    const targetFile = locations.find(loc => fs.existsSync(loc));
-
-    if (targetFile) {
-        res.sendFile(targetFile);
-    } else {
-        res.status(404).send(`
-            <body style="background:#030712;color:#f3f4f6;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;">
-                <div style="border:1px solid #1e293b;padding:50px;border-radius:30px;background:#0f172a;max-width:500px;">
-                    <h1 style="color:#06b6d4;margin-bottom:20px;">🚀 Motor Elite v4.3 Online</h1>
-                    <p style="line-height:1.6;">Servidor activo, pero falta el archivo <b>index.html</b> en GitHub.</p>
-                    <p style="font-size:12px;color:#64748b;">Asegúrate de subir el archivo del tablero al repositorio principal.</p>
+    <nav class="glass sticky top-0 z-50 p-6 border-b border-cyan-500/20">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-5">
+                <div class="bg-gradient-to-br from-cyan-600 to-blue-600 text-white w-14 h-14 flex items-center justify-center rounded-2xl font-black text-3xl shadow-2xl shadow-cyan-500/20">A</div>
+                <div>
+                    <h1 class="text-2xl font-black tracking-tighter uppercase italic text-white">Activa <span class="text-cyan-400 font-light text-sm">Elite v4.3</span></h1>
+                    <div class="flex items-center gap-2">
+                        <span class="live-pulse"></span>
+                        <span class="text-[10px] font-bold text-green-400 uppercase tracking-[0.2em]">SISTEMA LIVE: ARAUCANÍA</span>
+                    </div>
                 </div>
-            </body>
-        `);
-    }
-});
+            </div>
+            <button onclick="window.location.reload()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-8 py-3 rounded-full text-[10px] font-black tracking-widest uppercase transition-all shadow-xl active:scale-95">RE-SYNC DATA</button>
+        </div>
+    </nav>
 
-// --- 3. MOTOR DE INTELIGENCIA Y CRM ---
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const ZOHO_REFRESH_TOKEN = process.env.ZOHO_REFRESH_TOKEN;
+    <main class="max-w-7xl mx-auto p-6 md:p-10 space-y-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+            <div class="glass p-8 rounded-[2.5rem] border-t-4 border-cyan-500"><p class="text-[10px] font-black text-slate-500 uppercase mb-2">Leads</p><h4 class="text-5xl font-black text-white italic">142</h4></div>
+            <div class="glass p-8 rounded-[2.5rem] border-t-4 border-blue-500"><p class="text-[10px] font-black text-slate-500 uppercase mb-2">VIP</p><h4 class="text-5xl font-black text-blue-400 italic">38</h4></div>
+            <div class="glass p-8 rounded-[2.5rem] border-t-4 border-purple-500"><p class="text-[10px] font-black text-slate-500 uppercase mb-2">ROI</p><h4 class="text-5xl font-black text-purple-400 italic">14.2x</h4></div>
+            <div class="glass p-8 rounded-[2.5rem] border-t-4 border-emerald-500"><p class="text-[10px] font-black text-slate-500 uppercase mb-2">Zoho</p><h4 class="text-2xl font-black text-emerald-400 uppercase italic">ONLINE</h4></div>
+        </div>
 
-/**
- * Obtiene un Access Token fresco de Zoho usando el Refresh Token permanente.
- */
-async function getZohoToken() {
-    try {
-        const params = new URLSearchParams();
-        params.append('refresh_token', ZOHO_REFRESH_TOKEN);
-        params.append('client_id', process.env.ZOHO_CLIENT_ID);
-        params.append('client_secret', process.env.ZOHO_CLIENT_SECRET);
-        params.append('grant_type', 'refresh_token');
-        const res = await axios.post('https://accounts.zoho.com/oauth/v2/token', params);
-        return res.data.access_token;
-    } catch (e) { 
-        console.error("❌ [Zoho] Error renovando token.");
-        return null; 
-    }
-}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 glass p-10 rounded-[3.5rem]"><canvas id="mainChart" class="h-64"></canvas></div>
+            <div class="glass p-10 rounded-[3.5rem] flex items-center justify-center"><canvas id="pieChart" class="h-56 w-56"></canvas></div>
+        </div>
 
-// --- 4. WEBHOOKS (Meta Ads Flow) ---
+        <section class="glass p-10 rounded-[4rem] bg-gradient-to-br from-gray-950 to-black border border-white/5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                <div>
+                    <h3 class="text-5xl font-black mb-6 text-white uppercase italic tracking-tighter">Control Center</h3>
+                    <p class="text-slate-400 text-sm mb-8">Motor Elite v4.3 operando con Token Permanente de System User.</p>
+                </div>
+                <div class="bg-black/90 p-8 rounded-[2.5rem] border border-cyan-500/20 mono text-[11px] h-40 overflow-y-auto custom-scrollbar" id="terminal">
+                    <p class="text-emerald-400">>>> [SYSTEM] Activa Elite v4.3 online...</p>
+                    <p class="text-cyan-400 animate-pulse">>>> [WAITING] Esperando el próximo lead para Zoho CRM...</p>
+                </div>
+            </div>
+        </section>
+    </main>
 
-// Verificación del Webhook por parte de Meta
-app.get('/webhook/meta', (req, res) => {
-    if (req.query['hub.verify_token'] === process.env.META_VERIFY_TOKEN) {
-        res.status(200).send(req.query['hub.challenge']);
-    } else { res.sendStatus(403); }
-});
-
-// Recepción y procesamiento de Leads en tiempo real
-app.post('/webhook/meta', async (req, res) => {
-    const leadId = req.body.entry?.[0]?.changes?.[0]?.value?.leadgen_id;
-    if (leadId) {
-        console.log(`🚀 [Incoming] Procesando Lead ID: ${leadId}`);
-        try {
-            const fbToken = process.env.META_ACCESS_TOKEN;
-            // Consultamos los detalles del lead a la API de Meta
-            const fbRes = await axios.get(`https://graph.facebook.com/v22.0/${leadId}?access_token=${fbToken}`);
-            const data = fbRes.data;
-
-            const leadInfo = {
-                name: data.field_data?.find(f => f.name === 'full_name')?.values[0] || "Cliente Meta",
-                email: data.field_data?.find(f => f.name === 'email')?.values[0] || "",
-                phone: data.field_data?.find(f => f.name === 'phone_number')?.values[0] || "",
-                source: "Meta Ads Elite"
-            };
-
-            // Registro en Firestore para el historial del Dashboard
-            if (db) {
-                const appId = process.env.APP_ID || 'activa-elite';
-                await setDoc(doc(collection(db, `artifacts/${appId}/public/data/leads`), leadId), {
-                    ...leadInfo,
-                    timestamp: serverTimestamp()
-                });
-            }
-
-            // Envío a Zoho CRM
-            const zohoToken = await getZohoToken();
-            if (zohoToken) {
-                await axios.post("https://www.zohoapis.com/crm/v2/Leads", {
-                    data: [{
-                        "Last_Name": leadInfo.name,
-                        "Email": leadInfo.email,
-                        "Phone": leadInfo.phone,
-                        "Description": `Lead inyectado por motor v4.3 - Permanent Token Mode`,
-                        "Lead_Source": "Meta Ads"
-                    }]
-                }, { headers: { 'Authorization': 'Zoho-oauthtoken ' + zohoToken } });
-                console.log(`🏁 [Success] Lead ${leadInfo.name} enviado a Zoho CRM.`);
-            }
-        } catch (error) {
-            console.error("❌ [Error Flow]:", error.response?.data || error.message);
-        }
-    }
-    res.sendStatus(200);
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log("==========================================");
-    console.log(`🏎️  ACTIVA ELITE v4.3 FINAL READY`);
-    console.log(`📍 PORT: ${PORT} | STATUS: LIVE OPERATIONS`);
-    console.log("==========================================");
-});
+    <script>
+        Chart.defaults.color = '#64748b';
+        // Gráfico de Línea
+        new Chart(document.getElementById('mainChart'), { 
+            type: 'line', 
+            data: { 
+                labels: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'], 
+                datasets: [{ 
+                    data: [18, 24, 21, 45, 32, 58, 72], 
+                    borderColor: '#06b6d4', 
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: 'rgba(6, 182, 212, 0.1)'
+                }] 
+            }, 
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } 
+        });
+        // Gráfico de Dona
+        new Chart(document.getElementById('pieChart'), { 
+            type: 'doughnut', 
+            data: { 
+                labels: ['VIP', 'General'], 
+                datasets: [{ 
+                    data: [38, 104], 
+                    backgroundColor: ['#06b6d4', '#1e293b'], 
+                    borderWidth: 0 
+                }] 
+            }, 
+            options: { responsive: true, maintainAspectRatio: false, cutout: '85%', plugins: { legend: { display: false } } } 
+        });
+    </script>
+</body>
+</html>
