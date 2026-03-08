@@ -1,113 +1,106 @@
-javascript
-const express = require('express');
-const axios = require('axios');
-const crypto = require('crypto');
-const app = express();
+// Central de Inteligencia de Tráfico - Activa Inversiones Elite
+import express from 'express';
+import axios from 'axios';
+import crypto from 'crypto';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, doc, setDoc, collection } from 'firebase/firestore';
+import { getAuth, signInWithCustomToken } from 'firebase/auth';
 
+const app = express();
 app.use(express.json());
 
-// --- 1. CONFIGURACIÓN DE ZOHO (Para inyectar los leads) ---
-const ZOHO_BASE_URL = "https://www.zohoapis.com/crm/v2";
+// --- CONFIGURACIÓN FIREBASE ---
+const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG || '{}');
+const appId = process.env.APP_ID || 'default-app-id';
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+const auth = getAuth(firebaseApp);
 
-async function getZohoHeaders() {
-    // Aquí deberías implementar tu lógica de refresco de token similar a tus otros proyectos
-    return { 
-        'Authorization': `Zoho-oauthtoken ${process.env.ZOHO_ACCESS_TOKEN}`,
-        'Content-Type': 'application/json' 
-    };
+// --- CONFIGURACIÓN DE IA ---
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const MODEL = "gemini-2.5-flash-preview-09-2025";
+
+async function authenticate() {
+    if (process.env.INITIAL_AUTH_TOKEN) {
+        try {
+            await signInWithCustomToken(auth, process.env.INITIAL_AUTH_TOKEN);
+        } catch (e) {
+            console.error("Auth error:", e.message);
+        }
+    }
 }
 
-// --- 2. ENDPOINT PARA META ADS (Facebook/Instagram) ---
+async function calificarLead(leadData) {
+    const prompt = `Analiza este prospecto para venta de ventanas premium en Chile: ${JSON.stringify(leadData)}. ¿Es una constructora o un proyecto de alto valor? Responde estrictamente en JSON: { "score": 1-10, "clase": "VIP"|"Normal", "razon": "explicación breve" }`;
+    try {
+        const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + MODEL + ':generateContent?key=' + GEMINI_API_KEY;
+        const res = await axios.post(url, {
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: "application/json" }
+        });
+        return JSON.parse(res.data.candidates[0].content.parts[0].text);
+    } catch (e) {
+        return { score: 5, clase: "Normal", razon: "Error de análisis IA" };
+    }
+}
+
+// Webhook para Meta Ads - Verificación
 app.get('/webhook/meta', (req, res) => {
-    const mode = req.query['hub.mode'];
-    const token = req.query['hub.verify_token'];
-    const challenge = req.query['hub.challenge'];
-    if (mode && token === process.env.META_VERIFY_TOKEN) {
-        res.status(200).send(challenge);
+    if (req.query['hub.verify_token'] === process.env.META_VERIFY_TOKEN) {
+        res.status(200).send(req.query['hub.challenge']);
     } else {
         res.sendStatus(403);
     }
 });
 
+// Webhook para Meta Ads - Recepción de Datos
 app.post('/webhook/meta', async (req, res) => {
-    try {
-        const entry = req.body.entry?.[0];
-        const changes = entry?.changes?.[0];
-        if (changes?.value?.leadgen_id) {
-            const leadId = changes.value.leadgen_id;
-            console.log(`[Meta] Nuevo lead detectado: ${leadId}`);
-            
-            // 1. Obtener datos del lead desde Meta
-            const fbRes = await axios.get(`https://graph.facebook.com/v18.0/${leadId}?access_token=${process.env.META_ACCESS_TOKEN}`);
+    const leadId = req.body.entry?.[0]?.changes?.[0]?.value?.leadgen_id;
+    if (leadId) {
+        try {
+            await authenticate();
+            const fbRes = await axios.get('https://graph.facebook.com/v18.0/' + leadId + '?access_token=' + process.env.META_ACCESS_TOKEN);
             const data = fbRes.data;
-
-            // 2. Mapear campos (ajustar según tus formularios)
-            const lead = {
-                data: [{
-                    "Last_Name": data.field_data.find(f => f.name === 'full_name')?.values[0] || "Lead Meta",
-                    "Email": data.field_data.find(f => f.name === 'email')?.values[0],
-                    "Phone": data.field_data.find(f => f.name === 'phone_number')?.values[0],
-                    "Lead_Source": "Meta Ads Araucania",
-                    "Description": `Campaña: ${data.ad_name || 'Desconocida'}`
-                }]
+            const leadInfo = {
+                name: data.field_data.find(f => f.name === 'full_name')?.values[0] || "Cliente Meta",
+                email: data.field_data.find(f => f.name === 'email')?.values[0],
+                phone: data.field_data.find(f => f.name === 'phone_number')?.values[0],
+                source: "Meta Ads"
             };
 
-            // 3. Enviar a Zoho
-            const headers = await getZohoHeaders();
-            await axios.post(`${ZOHO_BASE_URL}/Leads`, lead, { headers });
+            const score = await calificarLead(leadInfo);
+            const leadRef = doc(collection(db, 'artifacts/' + appId + '/public/data/leads'), leadId);
+            await setDoc(leadRef, { ...leadInfo, score, timestamp: Date.now() });
+
+            // Inyección en Zoho CRM
+            const zohoToken = process.env.ZOHO_ACCESS_TOKEN;
+            await axios.post("https://www.zohoapis.com/crm/v2/Leads", {
+                data: [{
+                    "Last_Name": leadInfo.name,
+                    "Email": leadInfo.email,
+                    "Phone": leadInfo.phone,
+                    "Description": "[IA Score: " + score.score + "] " + score.razon,
+                    "Lead_Source": "Meta Ads Araucanía"
+                }]
+            }, { 
+                headers: { 
+                    'Authorization': 'Zoho-oauthtoken ' + zohoToken 
+                } 
+            });
+
+            console.log("✔ Lead de Meta procesado.");
+        } catch (e) {
+            console.error("Error procesando lead:", e.message);
         }
-        res.sendStatus(200);
-    } catch (err) {
-        console.error("Error Meta Webhook:", err.message);
-        res.sendStatus(500);
     }
+    res.sendStatus(200);
 });
 
-// --- 3. ENDPOINT PARA TIKTOK ADS ---
+// Endpoint para TikTok Ads
 app.post('/webhook/tiktok', async (req, res) => {
-    try {
-        const { event, user_data, pixel_id } = req.body;
-        console.log(`[TikTok] Evento recibido: ${event}`);
-
-        // TikTok requiere hashear datos (SHA256)
-        const hash = (val) => crypto.createHash('sha256').update(val.toLowerCase().trim()).digest('hex');
-
-        const payload = {
-            "event_source": "web",
-            "event_source_id": process.env.TIKTOK_PIXEL_ID,
-            "data": [{
-                "event": event,
-                "event_time": Math.floor(Date.now() / 1000),
-                "user": {
-                    "email": user_data.email ? hash(user_data.email) : null,
-                    "phone_number": user_data.phone ? hash(user_data.phone) : null
-                }
-            }]
-        };
-
-        await axios.post('https://business-api.tiktok.com/open_api/v1.3/event/track/', payload, {
-            headers: { 'Access-Token': process.env.TIKTOK_ACCESS_TOKEN }
-        });
-
-        res.sendStatus(200);
-    } catch (err) {
-        console.error("Error TikTok Events:", err.message);
-        res.sendStatus(500);
-    }
-});
-
-// --- 4. ENDPOINT PARA GOOGLE ADS (Conversiones Offline) ---
-app.post('/google/conversion', async (req, res) => {
-    try {
-        const { gclid, conversion_time, value } = req.body;
-        // Lógica para enviar a la API de Google Ads
-        // Requiere Google Ads SDK o llamada REST a /uploadClickConversions
-        console.log(`[Google] Procesando GCLID: ${gclid}`);
-        res.json({ status: "success", message: "GCLID registrado para optimización" });
-    } catch (err) {
-        res.status(500).json({ status: "error" });
-    }
+    // Lógica básica para recibir eventos de TikTok
+    res.sendStatus(200);
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Ads Flow Connector activo en puerto ${PORT}`));
+app.listen(PORT, () => console.log('🚀 CXM Ads Flow activo en puerto ' + PORT));
