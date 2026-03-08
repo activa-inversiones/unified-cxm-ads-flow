@@ -1,0 +1,16 @@
+
+```json
+{
+  "name": "unified-cxm-ads-flow",
+  "version": "1.0.0",
+  "description": "Central de anuncios para Activa Inversiones",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0"
+  }
+}
+```
