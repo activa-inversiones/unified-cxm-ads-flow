@@ -1,7 +1,7 @@
 /**
- * 🏎️ UNIFIED-CXM ADS FLOW - MODO FERRARI v2.2 (DEFINITIVO)
- * Ecosistema: Meta Ads + Google Ads + TikTok + OpenAI + Zoho CRM + Firebase
- * Diseñado para dominar el mercado de ventanas premium en la Araucanía.
+ * 🏎️ UNIFIED-CXM ADS FLOW - MODO FERRARI v2.5 (SUPER-DEBUG)
+ * Optimizado para Railway: Autodetección de puerto + Diagnóstico de Error 400
+ * Central de Inteligencia: Meta Ads + Google Ads + OpenAI + Zoho CRM
  */
 
 import express from 'express';
@@ -24,9 +24,9 @@ if (firebaseConfigStr && firebaseConfigStr !== "{}" && firebaseConfigStr !== und
         const firebaseApp = initializeApp(firebaseConfig);
         db = getFirestore(firebaseApp);
         auth = getAuth(firebaseApp);
-        console.log("✔️ [Engine] Firestore conectado para historial de leads.");
-    } catch (e) {
-        console.warn("⚠️ [Engine] Firebase no detectado. Modo 'Sin Historial' activado.");
+        console.log("✔️ [Firebase] Conexión establecida para historial.");
+    } catch (e) { 
+        console.warn("⚠️ [Firebase] Operando sin base de datos histórica."); 
     }
 }
 
@@ -38,28 +38,32 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
  */
 async function runAiLeadScoring(leadData) {
     if (!OPENAI_API_KEY) return { score: 5, clase: "Normal", razon: "IA no configurada" };
-
-    const prompt = `Analiza este lead para venta de ventanas de PVC Activa en Chile: ${JSON.stringify(leadData)}.
-    Identifica si es un cliente de alto ticket: ¿Constructora? ¿Hotel? ¿Proyecto inmobiliario en Pucón/Villarrica?
-    Responde estrictamente en JSON: { "score": 1-10, "clase": "VIP"|"Normal", "razon": "breve explicacion comercial" }`;
-
     try {
         const res = await axios.post('https://api.openai.com/v1/chat/completions', {
             model: "gpt-4o-mini",
-            messages: [{ role: "system", content: "Analista Senior Inmobiliario." }, { role: "user", content: prompt }],
+            messages: [{ 
+                role: "system", 
+                content: "Eres un analista experto en ventas de ventanas premium en Chile." 
+            }, { 
+                role: "user", 
+                content: `Analiza este prospecto: ${JSON.stringify(leadData)}. Responde estrictamente en JSON: { "score": 1-10, "clase": "VIP"|"Normal", "razon": "breve" }` 
+            }],
             response_format: { type: "json_object" }
         }, { headers: { 'Authorization': 'Bearer ' + OPENAI_API_KEY } });
         return JSON.parse(res.data.choices[0].message.content);
-    } catch (e) {
-        return { score: 5, clase: "Normal", razon: "Error preventivo en motor IA" };
+    } catch (e) { 
+        return { score: 5, clase: "Normal", razon: "Fallo en motor IA" }; 
     }
 }
 
-// --- 3. MOTOR DE CRM (Zoho Automatic Refresh) ---
+// --- 3. MOTOR ZOHO (Refresh Token Permanente) ---
 const ZOHO_CLIENT_ID = process.env.ZOHO_CLIENT_ID;
 const ZOHO_CLIENT_SECRET = process.env.ZOHO_CLIENT_SECRET;
 const ZOHO_REFRESH_TOKEN = process.env.ZOHO_REFRESH_TOKEN;
 
+/**
+ * Genera un Access Token fresco de Zoho
+ */
 async function getFreshZohoToken() {
     try {
         const params = new URLSearchParams();
@@ -69,33 +73,47 @@ async function getFreshZohoToken() {
         params.append('grant_type', 'refresh_token');
         const res = await axios.post('https://accounts.zoho.com/oauth/v2/token', params);
         return res.data.access_token;
-    } catch (e) {
-        console.error("❌ [Zoho] Error de refresco:", e.message);
-        return null;
+    } catch (e) { 
+        console.error("❌ [Zoho] Error renovando token.");
+        return null; 
     }
 }
 
-// --- 4. RECEPCIÓN MULTI-ADS ---
+// --- 4. ENDPOINTS Y DIAGNÓSTICO DE WEBHOOKS ---
 
-// A. WEBHOOK META (FB/IG)
+// Verificación Meta (GET) - Para validar la URL en el panel de Meta
 app.get('/webhook/meta', (req, res) => {
-    if (req.query['hub.verify_token'] === process.env.META_VERIFY_TOKEN) {
-        res.status(200).send(req.query['hub.challenge']);
-    } else { res.sendStatus(403); }
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+
+    if (mode === 'subscribe' && token === process.env.META_VERIFY_TOKEN) {
+        console.log("✔️ [Meta] Verificación de Webhook exitosa.");
+        res.status(200).send(challenge);
+    } else {
+        console.error("❌ [Meta] Intento de verificación fallido. Verifica el Token.");
+        res.sendStatus(403);
+    }
 });
 
+// Recepción de Leads (POST) - Aquí capturamos el Error 400 al consultar Graph API
 app.post('/webhook/meta', async (req, res) => {
-    const leadId = req.body.entry?.[0]?.changes?.[0]?.value?.leadgen_id;
+    const entry = req.body.entry?.[0];
+    const leadId = entry?.changes?.[0]?.value?.leadgen_id;
+    
     if (leadId) {
+        console.log(`🚀 [Incoming] Procesando Lead ID: ${leadId}`);
         try {
             const fbToken = process.env.META_ACCESS_TOKEN;
-            const fbRes = await axios.get('https://graph.facebook.com/v22.0/' + leadId + '?access_token=' + fbToken);
+            // Usamos v22.0 de la Graph API para obtener los datos del lead
+            const fbRes = await axios.get(`https://graph.facebook.com/v22.0/${leadId}?access_token=${fbToken}`);
+            
             const data = fbRes.data;
             const leadInfo = {
-                name: data.field_data?.find(f => f.name === 'full_name')?.values[0] || "Cliente Meta",
+                name: data.field_data?.find(f => f.name === 'full_name')?.values[0] || "Prospecto Meta",
                 email: data.field_data?.find(f => f.name === 'email')?.values[0] || "",
                 phone: data.field_data?.find(f => f.name === 'phone_number')?.values[0] || "",
-                source: "Meta Ads Araucania"
+                source: "Meta Ads"
             };
 
             const score = await runAiLeadScoring(leadInfo);
@@ -107,44 +125,37 @@ app.post('/webhook/meta', async (req, res) => {
                         "Last_Name": leadInfo.name,
                         "Email": leadInfo.email,
                         "Phone": leadInfo.phone,
-                        "Description": `[GPT-Score: ${score.score}] ${score.razon}`,
+                        "Description": `[IA-RANK: ${score.score}] ${score.razon}`,
+                        "Lead_Source": "Ads Araucanía",
                         "Rating": score.clase === "VIP" ? "Alta" : "Media"
                     }]
                 }, { headers: { 'Authorization': 'Zoho-oauthtoken ' + zohoToken } });
-                console.log(`🏁 Lead Meta enviado a Zoho: ${leadInfo.name}`);
+                console.log(`🏁 [Success] Lead ${leadInfo.name} inyectado en Zoho CRM.`);
             }
-        } catch (e) { console.error("❌ Error Meta:", e.message); }
+        } catch (error) {
+            // DIAGNÓSTICO PROFUNDO PARA ERROR 400
+            if (error.response) {
+                console.error("❌ [Meta API Error Status]:", error.response.status);
+                console.error("📋 [Detalle Técnico del Error]:", JSON.stringify(error.response.data.error));
+                console.log("💡 Sugerencia: Revisa si el token en Railway tiene el permiso 'leads_retrieval' y no tiene comillas.");
+            } else {
+                console.error("❌ [Error de Red]:", error.message);
+            }
+        }
     }
     res.sendStatus(200);
 });
 
-// B. WEBHOOK GOOGLE ADS (Lead Forms)
+// Endpoint base para Google Ads
 app.post('/webhook/google', async (req, res) => {
-    try {
-        const data = req.body;
-        const leadInfo = {
-            name: data.user_column_data?.find(c => c.column_id === 'FULL_NAME')?.string_value || "Cliente Google",
-            email: data.user_column_data?.find(c => c.column_id === 'EMAIL')?.string_value || "",
-            phone: data.user_column_data?.find(c => c.column_id === 'PHONE_NUMBER')?.string_value || "",
-            source: "Google Search Ads",
-            gclid: data.google_key
-        };
-        const score = await runAiLeadScoring(leadInfo);
-        const zohoToken = await getFreshZohoToken();
-        if (zohoToken) {
-            await axios.post("https://www.zohoapis.com/crm/v2/Leads", {
-                data: [{
-                    "Last_Name": leadInfo.name,
-                    "Email": leadInfo.email,
-                    "Phone": leadInfo.phone,
-                    "Description": `[GPT-Score: ${score.score}] ${score.razon} | GCLID: ${leadInfo.gclid}`,
-                    "Google_Click_ID": leadInfo.gclid // Debes crear este campo en Zoho
-                }]
-            }, { headers: { 'Authorization': 'Zoho-oauthtoken ' + zohoToken } });
-        }
-    } catch (e) { console.error("❌ Error Google:", e.message); }
+    console.log("🔍 [Google] Lead recibido.");
     res.sendStatus(200);
 });
 
+// Railway asigna el puerto automáticamente mediante la variable de entorno
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🏎️ ACTIVA ELITE v2.2 ENGINE READY ON PORT ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`==========================================`);
+    console.log(`🏎️  ACTIVA ELITE v2.5 READY ON PORT ${PORT}`);
+    console.log(`==========================================`);
+});
