@@ -1,7 +1,7 @@
 /**
- * 🏎️ UNIFIED-CXM ADS FLOW - MODO FERRARI v2.5 (SUPER-DEBUG)
- * Optimizado para Railway: Autodetección de puerto + Diagnóstico de Error 400
+ * 🏎️ UNIFIED-CXM ADS FLOW - MODO FERRARI v2.6 (LIVE READY)
  * Central de Inteligencia: Meta Ads + Google Ads + OpenAI + Zoho CRM
+ * Optimizada para Producción y Diagnóstico de Permisos
  */
 
 import express from 'express';
@@ -24,9 +24,9 @@ if (firebaseConfigStr && firebaseConfigStr !== "{}" && firebaseConfigStr !== und
         const firebaseApp = initializeApp(firebaseConfig);
         db = getFirestore(firebaseApp);
         auth = getAuth(firebaseApp);
-        console.log("✔️ [Firebase] Conexión establecida para historial.");
+        console.log("✔️ [Engine] Motor de base de datos encendido.");
     } catch (e) { 
-        console.warn("⚠️ [Firebase] Operando sin base de datos histórica."); 
+        console.warn("⚠️ [Engine] Firebase no detectado o mal configurado."); 
     }
 }
 
@@ -35,34 +35,34 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 /**
  * AI Lead Scoring Engine
+ * Analiza el perfil del cliente y decide si es VIP (Proyectos Grandes) o Normal.
  */
 async function runAiLeadScoring(leadData) {
     if (!OPENAI_API_KEY) return { score: 5, clase: "Normal", razon: "IA no configurada" };
+
+    const prompt = `Analiza este prospecto de ventanas en Chile: ${JSON.stringify(leadData)}.
+    Identifica si es una constructora, inmobiliaria o proyecto de alto ticket en la Araucanía.
+    Responde estrictamente en JSON: { "score": 1-10, "clase": "VIP"|"Normal", "razon": "breve explicacion" }`;
+
     try {
         const res = await axios.post('https://api.openai.com/v1/chat/completions', {
             model: "gpt-4o-mini",
-            messages: [{ 
-                role: "system", 
-                content: "Eres un analista experto en ventas de ventanas premium en Chile." 
-            }, { 
-                role: "user", 
-                content: `Analiza este prospecto: ${JSON.stringify(leadData)}. Responde estrictamente en JSON: { "score": 1-10, "clase": "VIP"|"Normal", "razon": "breve" }` 
-            }],
+            messages: [{ role: "system", content: "Analista Senior de Ventas." }, { role: "user", content: prompt }],
             response_format: { type: "json_object" }
         }, { headers: { 'Authorization': 'Bearer ' + OPENAI_API_KEY } });
         return JSON.parse(res.data.choices[0].message.content);
-    } catch (e) { 
-        return { score: 5, clase: "Normal", razon: "Fallo en motor IA" }; 
+    } catch (e) {
+        return { score: 5, clase: "Normal", razon: "Fallo preventivo en motor IA" };
     }
 }
 
-// --- 3. MOTOR ZOHO (Refresh Token Permanente) ---
+// --- 3. MOTOR CRM (Zoho Automatic Refresh) ---
 const ZOHO_CLIENT_ID = process.env.ZOHO_CLIENT_ID;
 const ZOHO_CLIENT_SECRET = process.env.ZOHO_CLIENT_SECRET;
 const ZOHO_REFRESH_TOKEN = process.env.ZOHO_REFRESH_TOKEN;
 
 /**
- * Genera un Access Token fresco de Zoho
+ * Obtiene un nuevo Access Token de Zoho usando el Refresh Token permanente.
  */
 async function getFreshZohoToken() {
     try {
@@ -73,30 +73,24 @@ async function getFreshZohoToken() {
         params.append('grant_type', 'refresh_token');
         const res = await axios.post('https://accounts.zoho.com/oauth/v2/token', params);
         return res.data.access_token;
-    } catch (e) { 
+    } catch (e) {
         console.error("❌ [Zoho] Error renovando token.");
-        return null; 
+        return null;
     }
 }
 
-// --- 4. ENDPOINTS Y DIAGNÓSTICO DE WEBHOOKS ---
+// --- 4. RECEPCIÓN MULTI-ADS (WEBHOOKS) ---
 
-// Verificación Meta (GET) - Para validar la URL en el panel de Meta
+// Webhook Meta: Verificación de seguridad
 app.get('/webhook/meta', (req, res) => {
-    const mode = req.query['hub.mode'];
-    const token = req.query['hub.verify_token'];
-    const challenge = req.query['hub.challenge'];
-
-    if (mode === 'subscribe' && token === process.env.META_VERIFY_TOKEN) {
-        console.log("✔️ [Meta] Verificación de Webhook exitosa.");
-        res.status(200).send(challenge);
+    if (req.query['hub.verify_token'] === process.env.META_VERIFY_TOKEN) {
+        res.status(200).send(req.query['hub.challenge']);
     } else {
-        console.error("❌ [Meta] Intento de verificación fallido. Verifica el Token.");
         res.sendStatus(403);
     }
 });
 
-// Recepción de Leads (POST) - Aquí capturamos el Error 400 al consultar Graph API
+// Webhook Meta: Procesamiento de Leads Reales
 app.post('/webhook/meta', async (req, res) => {
     const entry = req.body.entry?.[0];
     const leadId = entry?.changes?.[0]?.value?.leadgen_id;
@@ -105,12 +99,14 @@ app.post('/webhook/meta', async (req, res) => {
         console.log(`🚀 [Incoming] Procesando Lead ID: ${leadId}`);
         try {
             const fbToken = process.env.META_ACCESS_TOKEN;
-            // Usamos v22.0 de la Graph API para obtener los datos del lead
-            const fbRes = await axios.get(`https://graph.facebook.com/v22.0/${leadId}?access_token=${fbToken}`);
+            const fbVersion = process.env.META_GRAPH_VERSION || 'v22.0';
+            
+            // Intento de obtener datos desde Facebook
+            const fbRes = await axios.get(`https://graph.facebook.com/${fbVersion}/${leadId}?access_token=${fbToken}`);
             
             const data = fbRes.data;
             const leadInfo = {
-                name: data.field_data?.find(f => f.name === 'full_name')?.values[0] || "Prospecto Meta",
+                name: data.field_data?.find(f => f.name === 'full_name')?.values[0] || "Cliente Meta",
                 email: data.field_data?.find(f => f.name === 'email')?.values[0] || "",
                 phone: data.field_data?.find(f => f.name === 'phone_number')?.values[0] || "",
                 source: "Meta Ads"
@@ -126,36 +122,34 @@ app.post('/webhook/meta', async (req, res) => {
                         "Email": leadInfo.email,
                         "Phone": leadInfo.phone,
                         "Description": `[IA-RANK: ${score.score}] ${score.razon}`,
-                        "Lead_Source": "Ads Araucanía",
                         "Rating": score.clase === "VIP" ? "Alta" : "Media"
                     }]
                 }, { headers: { 'Authorization': 'Zoho-oauthtoken ' + zohoToken } });
-                console.log(`🏁 [Success] Lead ${leadInfo.name} inyectado en Zoho CRM.`);
+                console.log(`🏁 [Success] Lead ${leadInfo.name} inyectado en Zoho.`);
             }
         } catch (error) {
-            // DIAGNÓSTICO PROFUNDO PARA ERROR 400
-            if (error.response) {
-                console.error("❌ [Meta API Error Status]:", error.response.status);
-                console.error("📋 [Detalle Técnico del Error]:", JSON.stringify(error.response.data.error));
-                console.log("💡 Sugerencia: Revisa si el token en Railway tiene el permiso 'leads_retrieval' y no tiene comillas.");
+            // Manejo específico del error de permisos (Subcode 33)
+            if (error.response?.data?.error?.error_subcode === 33) {
+                console.error("❌ [Error 400]: Falta permiso de 'Acceso a clientes potenciales' en el Business Manager.");
+                console.log("💡 SOLUCIÓN: Ve a Business Manager -> Integraciones -> Acceso a Clientes Potenciales y asigna tu APP a la PÁGINA.");
             } else {
-                console.error("❌ [Error de Red]:", error.message);
+                console.error("❌ [Error Meta API]:", error.response?.data || error.message);
             }
         }
     }
     res.sendStatus(200);
 });
 
-// Endpoint base para Google Ads
+// Webhook Google Ads
 app.post('/webhook/google', async (req, res) => {
-    console.log("🔍 [Google] Lead recibido.");
+    console.log("🔍 [Google Ads] Lead detectado.");
     res.sendStatus(200);
 });
 
-// Railway asigna el puerto automáticamente mediante la variable de entorno
+// El puerto lo asigna Railway, por defecto 3000
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`==========================================`);
-    console.log(`🏎️  ACTIVA ELITE v2.5 READY ON PORT ${PORT}`);
-    console.log(`==========================================`);
+    console.log("==========================================");
+    console.log(`🏎️  ACTIVA ELITE v2.6 READY ON PORT ${PORT}`);
+    console.log("==========================================");
 });
