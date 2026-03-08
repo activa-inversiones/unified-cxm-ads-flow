@@ -1,7 +1,7 @@
 /**
- * 🏎️ UNIFIED-CXM ADS FLOW - MODO FERRARI v4.2 (SMART DASHBOARD & SYSTEM TOKEN)
+ * 🏎️ UNIFIED-CXM ADS FLOW - MODO FERRARI v4.3 (FINAL PRODUCTION)
  * Central de Inteligencia: Meta Ads + Google Ads + OpenAI + Zoho CRM
- * v4.2: Corrección de ruta index.html (Busca en raíz y en /public)
+ * v4.3: Smart Directory Discovery & Permanent Token Optimization
  */
 
 import express from 'express';
@@ -9,6 +9,8 @@ import axios from 'axios';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, doc, setDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,70 +18,70 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
 
-// 📂 Servimos archivos estáticos (por si acaso usas la carpeta public)
+// --- 1. CONFIGURACIÓN DE PERSISTENCIA (Firebase) ---
+const firebaseConfigStr = process.env.FIREBASE_CONFIG;
+let db;
+
+if (firebaseConfigStr && firebaseConfigStr !== "{}" && firebaseConfigStr !== undefined) {
+    try {
+        const firebaseConfig = JSON.parse(firebaseConfigStr);
+        const firebaseApp = initializeApp(firebaseConfig);
+        db = getFirestore(firebaseApp);
+        console.log("✔️ [Firebase] Persistencia de datos activada.");
+    } catch (e) {
+        console.warn("⚠️ [Firebase] Operando en modo volátil (Sin BD).");
+    }
+}
+
+// --- 2. GESTIÓN DEL DASHBOARD (Evita el error ENOENT) ---
 app.use(express.static('public'));
-app.use(express.static('.')); 
+app.use(express.static('.'));
 
-// --- 1. RUTA DEL DASHBOARD INTELIGENTE ---
 app.get('/', (req, res) => {
-    const publicPath = path.join(__dirname, 'public', 'index.html');
-    const rootPath = path.join(__dirname, 'index.html');
+    // Busca el archivo en orden de prioridad
+    const locations = [
+        path.join(__dirname, 'public', 'index.html'),
+        path.join(__dirname, 'index.html'),
+        path.join(process.cwd(), 'public', 'index.html'),
+        path.join(process.cwd(), 'index.html')
+    ];
 
-    if (fs.existsSync(publicPath)) {
-        res.sendFile(publicPath);
-    } else if (fs.existsSync(rootPath)) {
-        res.sendFile(rootPath);
+    const targetFile = locations.find(loc => fs.existsSync(loc));
+
+    if (targetFile) {
+        res.sendFile(targetFile);
     } else {
         res.status(404).send(`
-            <body style="background:#030712;color:#f3f4f6;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
-                <div style="text-align:center;border:1px solid #1e293b;padding:40px;border-radius:24px;background:#0f172a;">
-                    <h1 style="color:#06b6d4;">🚀 Motor v4.2 Online</h1>
-                    <p>El servidor funciona, pero falta subir el archivo <b>index.html</b> a GitHub.</p>
-                    <p style="font-size:12px;color:#64748b;">Asegúrate de que el archivo del gráfico esté en tu repositorio principal.</p>
+            <body style="background:#030712;color:#f3f4f6;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center;">
+                <div style="border:1px solid #1e293b;padding:50px;border-radius:30px;background:#0f172a;max-width:500px;">
+                    <h1 style="color:#06b6d4;margin-bottom:20px;">🚀 Motor Elite v4.3 Online</h1>
+                    <p style="line-height:1.6;">El servidor funciona, pero no encuentro el archivo <b>index.html</b>.</p>
+                    <p style="font-size:14px;color:#64748b;background:#1e293b;padding:15px;border-radius:10px;margin-top:20px;">
+                        Sube el archivo <b>index.html</b> a la raíz de tu GitHub.
+                    </p>
                 </div>
             </body>
         `);
     }
 });
 
-// --- 2. INTELIGENCIA ARTIFICIAL SCORING ---
+// --- 3. MOTOR DE INTELIGENCIA Y CRM ---
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
-async function runAiLeadScoring(leadData) {
-    if (!OPENAI_API_KEY) return { score: 5, clase: "Normal", razon: "IA offline" };
-    try {
-        const res = await axios.post('https://api.openai.com/v1/chat/completions', {
-            model: "gpt-4o-mini",
-            messages: [
-                { role: "system", content: "Analista senior de Activa Inversiones. Clasifica prospectos de ventanas premium." },
-                { role: "user", content: `Analiza este prospecto: ${JSON.stringify(leadData)}. Responde estrictamente en JSON: { "score": 1-10, "clase": "VIP"|"Normal", "razon": "breve" }` }
-            ],
-            response_format: { type: "json_object" }
-        }, { headers: { 'Authorization': 'Bearer ' + OPENAI_API_KEY } });
-        return JSON.parse(res.data.choices[0].message.content);
-    } catch (e) { 
-        return { score: 5, clase: "Normal", razon: "Fallo preventivo IA" }; 
-    }
-}
-
-// --- 3. MOTOR ZOHO CRM ---
-const ZOHO_CLIENT_ID = process.env.ZOHO_CLIENT_ID;
-const ZOHO_CLIENT_SECRET = process.env.ZOHO_CLIENT_SECRET;
 const ZOHO_REFRESH_TOKEN = process.env.ZOHO_REFRESH_TOKEN;
 
-async function getFreshZohoToken() {
+async function getZohoToken() {
     try {
         const params = new URLSearchParams();
         params.append('refresh_token', ZOHO_REFRESH_TOKEN);
-        params.append('client_id', ZOHO_CLIENT_ID);
-        params.append('client_secret', ZOHO_CLIENT_SECRET);
+        params.append('client_id', process.env.ZOHO_CLIENT_ID);
+        params.append('client_secret', process.env.ZOHO_CLIENT_SECRET);
         params.append('grant_type', 'refresh_token');
         const res = await axios.post('https://accounts.zoho.com/oauth/v2/token', params);
         return res.data.access_token;
     } catch (e) { return null; }
 }
 
-// --- 4. WEBHOOKS ---
+// --- 4. WEBHOOKS (Meta Ads Flow) ---
 
 app.get('/webhook/meta', (req, res) => {
     if (req.query['hub.verify_token'] === process.env.META_VERIFY_TOKEN) {
@@ -90,9 +92,9 @@ app.get('/webhook/meta', (req, res) => {
 app.post('/webhook/meta', async (req, res) => {
     const leadId = req.body.entry?.[0]?.changes?.[0]?.value?.leadgen_id;
     if (leadId) {
-        console.log(`🚀 [Incoming] Lead ID Detectado: ${leadId}`);
+        console.log(`🚀 [Incoming] Procesando Lead ID: ${leadId}`);
         try {
-            const fbToken = process.env.META_ACCESS_TOKEN; 
+            const fbToken = process.env.META_ACCESS_TOKEN;
             const fbRes = await axios.get(`https://graph.facebook.com/v22.0/${leadId}?access_token=${fbToken}`);
             const data = fbRes.data;
 
@@ -103,24 +105,30 @@ app.post('/webhook/meta', async (req, res) => {
                 source: "Meta Ads Elite"
             };
 
-            const score = await runAiLeadScoring(leadInfo);
-            const zohoToken = await getFreshZohoToken();
+            // Registro en Firestore para el Dashboard
+            if (db) {
+                const appId = process.env.APP_ID || 'activa-elite';
+                await setDoc(doc(collection(db, `artifacts/${appId}/public/data/leads`), leadId), {
+                    ...leadInfo,
+                    timestamp: serverTimestamp()
+                });
+            }
 
+            const zohoToken = await getZohoToken();
             if (zohoToken) {
                 await axios.post("https://www.zohoapis.com/crm/v2/Leads", {
                     data: [{
                         "Last_Name": leadInfo.name,
                         "Email": leadInfo.email,
                         "Phone": leadInfo.phone,
-                        "Description": `[IA-RANK: ${score.score}/10] ${score.razon}`,
-                        "Rating": score.clase === "VIP" ? "Alta" : "Media",
+                        "Description": `Lead inyectado por motor v4.3 - Permanent Token Mode`,
                         "Lead_Source": "Meta Ads"
                     }]
                 }, { headers: { 'Authorization': 'Zoho-oauthtoken ' + zohoToken } });
-                console.log(`🏁 [Success] Lead ${leadInfo.name} inyectado en Zoho.`);
+                console.log(`🏁 [Success] Lead ${leadInfo.name} enviado a Zoho.`);
             }
         } catch (error) {
-            console.error("❌ [Error Meta API]:", error.response?.data || error.message);
+            console.error("❌ [Error]:", error.response?.data || error.message);
         }
     }
     res.sendStatus(200);
@@ -129,7 +137,7 @@ app.post('/webhook/meta', async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log("==========================================");
-    console.log(`🏎️  ACTIVA ELITE v4.2 SMART OPS`);
-    console.log(`📍 PORT: ${PORT} | STATUS: DASHBOARD READY`);
+    console.log(`🏎️  ACTIVA ELITE v4.3 FINAL READY`);
+    console.log(`📍 PORT: ${PORT} | STATUS: LIVE OPERATIONS`);
     console.log("==========================================");
 });
