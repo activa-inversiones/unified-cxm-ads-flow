@@ -6,23 +6,40 @@
     name="viewport"
     content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
   />
-  <title>ACTIVA CXM | Command Center</title>
+  <title>ACTIVA CXM | Enterprise Command Center</title>
+  <meta
+    name="description"
+    content="ACTIVA Unified CXM Platform: command center para marketing, ventas, CRM, social listening e inteligencia competitiva."
+  />
   <style>
     :root {
-      --bg: #07101f;
-      --panel: #0d1a2f;
-      --panel-2: #112243;
-      --border: rgba(255,255,255,.08);
-      --text: #eaf2ff;
-      --muted: #98a8c7;
+      --bg: #07111f;
+      --bg-2: #0a1629;
+      --panel: rgba(13, 24, 44, 0.96);
+      --panel-2: rgba(15, 28, 52, 0.98);
+      --panel-3: rgba(18, 34, 63, 0.96);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-2: rgba(244, 197, 66, 0.15);
+      --text: #edf4ff;
+      --muted: #9fb0cf;
+      --muted-2: #7e90b4;
       --accent: #f4c542;
-      --accent-2: #3aa0ff;
-      --good: #36d399;
+      --accent-2: #f0b90b;
+      --brand-blue: #3b82f6;
+      --brand-blue-soft: rgba(59, 130, 246, 0.16);
+      --good: #34d399;
+      --good-soft: rgba(52, 211, 153, 0.12);
       --warn: #f59e0b;
-      --bad: #ef4444;
-      --chip: rgba(255,255,255,.06);
-      --shadow: 0 10px 30px rgba(0,0,0,.22);
-      --radius: 18px;
+      --warn-soft: rgba(245, 158, 11, 0.12);
+      --danger: #ef4444;
+      --danger-soft: rgba(239, 68, 68, 0.12);
+      --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.22);
+      --radius-xl: 24px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 12px;
+      --sidebar: 292px;
     }
 
     * {
@@ -33,10 +50,15 @@
     html, body {
       margin: 0;
       padding: 0;
-      background: linear-gradient(180deg, #07101f 0%, #091426 100%);
+      background:
+        radial-gradient(circle at top right, rgba(244, 197, 66, 0.08), transparent 24%),
+        radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 20%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
     }
 
     a {
@@ -44,146 +66,274 @@
       text-decoration: none;
     }
 
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
     .app {
       display: grid;
-      grid-template-columns: 280px 1fr;
+      grid-template-columns: var(--sidebar) 1fr;
       min-height: 100vh;
     }
 
     .sidebar {
-      background: rgba(4, 10, 20, .94);
-      border-right: 1px solid var(--border);
-      padding: 18px 14px;
       position: sticky;
       top: 0;
       height: 100vh;
       overflow-y: auto;
+      border-right: 1px solid var(--border);
+      background:
+        linear-gradient(180deg, rgba(4, 9, 18, 0.98) 0%, rgba(6, 12, 24, 0.98) 100%);
+      padding: 18px 16px 24px;
+      backdrop-filter: blur(18px);
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
+      padding: 10px 8px 18px;
+      border-bottom: 1px solid var(--border);
       margin-bottom: 18px;
     }
 
-    .logo {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
+    .brand-logo {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border: 1px solid var(--border);
       display: grid;
       place-items: center;
-      background: linear-gradient(135deg, #f4c542 0%, #e8aa00 100%);
-      color: #091426;
-      font-weight: 800;
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-lg);
       flex: 0 0 auto;
     }
 
-    .brand h1 {
-      font-size: 1rem;
+    .brand-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 6px;
+      background: transparent;
+    }
+
+    .brand-copy h1 {
       margin: 0;
-      line-height: 1.1;
+      font-size: 1rem;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
     }
 
-    .brand p {
-      margin: 2px 0 0;
-      font-size: .78rem;
+    .brand-copy p {
+      margin: 5px 0 0;
       color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.2;
     }
 
-    .nav-block {
+    .side-section {
       margin-top: 18px;
     }
 
-    .nav-title {
-      font-size: .72rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .08em;
+    .side-title {
       margin: 0 0 10px;
+      color: var(--muted-2);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0 6px;
     }
 
-    .nav-list {
+    .side-list {
       display: grid;
       gap: 8px;
     }
 
-    .nav-item {
+    .side-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 12px;
       padding: 12px 14px;
       border-radius: 14px;
-      background: var(--chip);
+      background: rgba(255,255,255,0.03);
       border: 1px solid transparent;
-      font-size: .95rem;
+      font-size: 0.94rem;
+      transition: 0.22s ease;
     }
 
-    .nav-item.active {
-      border-color: rgba(244,197,66,.3);
-      background: rgba(244,197,66,.08);
+    .side-item:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.045);
+    }
+
+    .side-item.active {
+      background: linear-gradient(180deg, rgba(244,197,66,0.11), rgba(244,197,66,0.06));
+      border-color: rgba(244,197,66,0.16);
     }
 
     .dot {
-      width: 8px;
-      height: 8px;
+      width: 9px;
+      height: 9px;
       border-radius: 999px;
       flex: 0 0 auto;
       background: var(--warn);
+      box-shadow: 0 0 0 4px rgba(245,158,11,0.08);
     }
 
-    .dot.good { background: var(--good); }
-    .dot.warn { background: var(--warn); }
-    .dot.bad { background: var(--bad); }
+    .dot.good {
+      background: var(--good);
+      box-shadow: 0 0 0 4px rgba(52,211,153,0.08);
+    }
+
+    .dot.warn {
+      background: var(--warn);
+    }
+
+    .dot.danger {
+      background: var(--danger);
+    }
 
     .main {
       padding: 22px;
     }
 
-    .topbar {
-      display: flex;
+    .mobile-topbar {
+      display: none;
       align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      margin-bottom: 18px;
-      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
     }
 
-    .headline h2 {
-      margin: 0;
-      font-size: clamp(1.35rem, 2vw, 2.1rem);
-      line-height: 1.05;
+    .mobile-topbar .brand-logo {
+      width: 46px;
+      height: 46px;
     }
 
-    .headline p {
-      margin: 6px 0 0;
-      color: var(--muted);
-      max-width: 900px;
-      font-size: .96rem;
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 26px;
+      margin-bottom: 16px;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      background:
+        radial-gradient(circle at top right, rgba(244, 197, 66, 0.12), transparent 20%),
+        radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.12), transparent 24%),
+        linear-gradient(180deg, rgba(13, 24, 44, 0.98) 0%, rgba(12, 22, 41, 0.98) 100%);
+      box-shadow: var(--shadow-xl);
     }
 
-    .actions {
+    .hero-top {
       display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
       flex-wrap: wrap;
+    }
+
+    .hero-copy {
+      max-width: 920px;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(244,197,66,0.08);
+      color: #ffd971;
+      border: 1px solid rgba(244,197,66,0.12);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      margin-bottom: 14px;
+    }
+
+    .hero h2 {
+      margin: 0;
+      font-size: clamp(1.55rem, 2.6vw, 2.5rem);
+      line-height: 1.02;
+      letter-spacing: -0.035em;
+    }
+
+    .hero p {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.6;
+      max-width: 920px;
+    }
+
+    .hero-actions {
+      display: flex;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
     .btn {
-      border: 1px solid var(--border);
-      background: var(--panel);
-      color: var(--text);
       padding: 11px 14px;
       border-radius: 12px;
-      font-weight: 600;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      font-weight: 700;
       cursor: pointer;
+      transition: 0.22s ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.12);
     }
 
     .btn.primary {
-      background: linear-gradient(135deg, #f4c542 0%, #e8aa00 100%);
-      color: #07101f;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+      color: #07111f;
       border-color: transparent;
+      box-shadow: 0 12px 30px rgba(240,185,11,0.18);
+    }
+
+    .btn.secondary {
+      background: linear-gradient(135deg, rgba(59,130,246,0.16), rgba(59,130,246,0.09));
+      border-color: rgba(59,130,246,0.16);
+      color: #b8d8ff;
+    }
+
+    .hero-footer {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .hero-mini {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .hero-mini small {
+      display: block;
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+    }
+
+    .hero-mini strong {
+      font-size: 1.3rem;
+      letter-spacing: -0.03em;
     }
 
     .grid {
@@ -194,10 +344,10 @@
 
     .card,
     .panel {
-      background: linear-gradient(180deg, rgba(15,27,49,.98) 0%, rgba(12,22,41,.98) 100%);
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
     }
 
     .card {
@@ -216,53 +366,77 @@
     .span-8 { grid-column: span 8; }
     .span-12 { grid-column: span 12; }
 
-    .kpi-top {
+    .kpi-head {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
+      margin-bottom: 14px;
     }
 
     .kpi-label {
       color: var(--muted);
-      font-size: .84rem;
+      font-size: 0.82rem;
       margin-bottom: 8px;
     }
 
     .kpi-value {
-      font-size: clamp(1.45rem, 3vw, 2rem);
+      font-size: clamp(1.45rem, 2.4vw, 2rem);
       font-weight: 800;
       line-height: 1;
+      letter-spacing: -0.04em;
     }
 
-    .badge {
-      font-size: .72rem;
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
       padding: 6px 10px;
       border-radius: 999px;
-      background: rgba(244,197,66,.12);
-      color: #ffd76a;
-      border: 1px solid rgba(244,197,66,.18);
+      border: 1px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.04);
+      font-size: 0.76rem;
+      color: var(--muted);
       white-space: nowrap;
     }
 
-    .section-title {
+    .pill.good {
+      color: #9ef0c9;
+      background: var(--good-soft);
+      border-color: rgba(52,211,153,0.15);
+    }
+
+    .pill.warn {
+      color: #ffd38b;
+      background: var(--warn-soft);
+      border-color: rgba(245,158,11,0.15);
+    }
+
+    .pill.blue {
+      color: #b8d8ff;
+      background: var(--brand-blue-soft);
+      border-color: rgba(59,130,246,0.15);
+    }
+
+    .section-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 14px;
       flex-wrap: wrap;
+      margin-bottom: 14px;
     }
 
-    .section-title h3 {
+    .section-head h3 {
       margin: 0;
       font-size: 1rem;
+      letter-spacing: -0.02em;
     }
 
-    .section-title p {
-      margin: 0;
+    .section-head p {
+      margin: 4px 0 0;
       color: var(--muted);
-      font-size: .88rem;
+      font-size: 0.88rem;
     }
 
     .progress-list {
@@ -279,31 +453,32 @@
       display: flex;
       justify-content: space-between;
       gap: 10px;
-      font-size: .92rem;
       flex-wrap: wrap;
+      font-size: 0.92rem;
     }
 
     .progress-name {
-      font-weight: 600;
+      font-weight: 700;
     }
 
     .progress-value {
       color: var(--muted);
-      font-weight: 700;
+      font-weight: 800;
     }
 
     .bar {
       height: 12px;
       border-radius: 999px;
-      background: rgba(255,255,255,.08);
       overflow: hidden;
+      background: rgba(255,255,255,0.07);
     }
 
     .bar > span {
       display: block;
       height: 100%;
       border-radius: inherit;
-      background: linear-gradient(90deg, #f4c542 0%, #ffd76a 100%);
+      background: linear-gradient(90deg, var(--accent) 0%, #ffe083 100%);
+      box-shadow: inset 0 0 12px rgba(255,255,255,0.12);
     }
 
     .metric-list,
@@ -317,76 +492,94 @@
     .module-item,
     .goal-item {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       gap: 12px;
       padding: 12px 14px;
       border-radius: 14px;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.04);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.04);
       flex-wrap: wrap;
     }
 
     .metric-item strong,
     .module-item strong,
     .goal-item strong {
-      font-size: .95rem;
+      font-size: 0.94rem;
     }
 
-    .value-pill {
-      padding: 6px 10px;
+    .value-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 11px;
       border-radius: 999px;
-      background: rgba(58,160,255,.14);
-      color: #8dc8ff;
-      border: 1px solid rgba(58,160,255,.16);
-      font-size: .84rem;
-      font-weight: 700;
+      font-size: 0.82rem;
+      font-weight: 800;
+      border: 1px solid rgba(255,255,255,0.07);
+      background: rgba(255,255,255,0.05);
       white-space: nowrap;
     }
 
-    .value-pill.good {
-      background: rgba(54,211,153,.12);
-      color: #8ef0c1;
-      border-color: rgba(54,211,153,.16);
+    .value-chip.good {
+      color: #9ef0c9;
+      background: var(--good-soft);
+      border-color: rgba(52,211,153,0.16);
     }
 
-    .value-pill.warn {
-      background: rgba(245,158,11,.12);
-      color: #ffd28c;
-      border-color: rgba(245,158,11,.16);
+    .value-chip.warn {
+      color: #ffd28b;
+      background: var(--warn-soft);
+      border-color: rgba(245,158,11,0.16);
+    }
+
+    .value-chip.blue {
+      color: #b8d8ff;
+      background: var(--brand-blue-soft);
+      border-color: rgba(59,130,246,0.16);
+    }
+
+    .enterprise-note {
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: linear-gradient(180deg, rgba(59,130,246,0.08), rgba(59,130,246,0.04));
+      border: 1px solid rgba(59,130,246,0.12);
+      color: #d6e8ff;
+      font-size: 0.92rem;
+      line-height: 1.5;
     }
 
     .table-wrap {
       width: 100%;
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
-      border-radius: 14px;
+      border-radius: 16px;
     }
 
     table {
       width: 100%;
-      min-width: 760px;
+      min-width: 860px;
       border-collapse: collapse;
+      background: rgba(255,255,255,0.02);
       overflow: hidden;
-      background: rgba(255,255,255,.03);
-      border-radius: 14px;
+      border-radius: 16px;
     }
 
     th, td {
       text-align: left;
-      padding: 12px 14px;
-      border-bottom: 1px solid rgba(255,255,255,.06);
+      padding: 13px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
       vertical-align: top;
-      font-size: .9rem;
+      font-size: 0.9rem;
       word-break: break-word;
     }
 
     th {
       color: var(--muted);
-      font-size: .78rem;
+      font-size: 0.76rem;
       text-transform: uppercase;
-      letter-spacing: .06em;
-      background: rgba(255,255,255,.03);
+      letter-spacing: 0.06em;
+      background: rgba(255,255,255,0.03);
     }
 
     .audit-list {
@@ -395,48 +588,52 @@
     }
 
     .audit-item {
-      border: 1px solid rgba(255,255,255,.06);
-      background: rgba(255,255,255,.03);
-      border-radius: 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
       padding: 14px;
     }
 
     .audit-head {
       display: flex;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 8px;
       flex-wrap: wrap;
+      margin-bottom: 8px;
     }
 
     .audit-type {
-      font-weight: 700;
-      color: #f1f6ff;
+      font-weight: 800;
+      font-size: 0.93rem;
     }
 
     .audit-date {
       color: var(--muted);
-      font-size: .82rem;
+      font-size: 0.8rem;
     }
 
     .audit-detail {
       color: var(--muted);
-      font-size: .88rem;
+      font-size: 0.86rem;
       white-space: pre-wrap;
       word-break: break-word;
+      line-height: 1.5;
     }
 
     .footer-note {
       color: var(--muted);
-      font-size: .84rem;
-      margin-top: 6px;
+      font-size: 0.84rem;
+      margin-top: 8px;
     }
 
-    .mobile-top {
-      display: none;
+    @media (max-width: 1260px) {
+      .hero-footer {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
 
-    @media (max-width: 1180px) {
+    @media (max-width: 1160px) {
       .app {
         grid-template-columns: 1fr;
       }
@@ -445,11 +642,8 @@
         display: none;
       }
 
-      .mobile-top {
+      .mobile-topbar {
         display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 14px;
       }
     }
 
@@ -464,14 +658,19 @@
       }
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 720px) {
       .main {
         padding: 14px;
       }
 
+      .hero,
       .card,
       .panel {
         padding: 14px;
+      }
+
+      .hero-actions {
+        width: 100%;
       }
 
       .btn {
@@ -479,12 +678,12 @@
         text-align: center;
       }
 
-      .actions {
-        width: 100%;
+      .hero-footer {
+        grid-template-columns: 1fr;
       }
 
       table {
-        min-width: 680px;
+        min-width: 700px;
       }
     }
   </style>
@@ -493,112 +692,134 @@
   <div class="app">
     <aside class="sidebar">
       <div class="brand">
-        <div class="logo">AI</div>
-        <div>
+        <div class="brand-logo">
+          <img src="/logo-activa.png" alt="Logo Activa Inversiones" onerror="this.style.display='none'; this.parentNode.innerHTML='AI';" />
+        </div>
+        <div class="brand-copy">
           <h1>ACTIVA CXM</h1>
-          <p>Unified Command Center</p>
+          <p>Enterprise Command Center</p>
         </div>
       </div>
 
-      <div class="nav-block">
-        <p class="nav-title">Núcleo</p>
-        <div class="nav-list">
-          <div class="nav-item active"><span>Command Center</span><span class="dot good"></span></div>
-          <div class="nav-item"><span>Customer 360</span><span class="dot warn"></span></div>
-          <div class="nav-item"><span>Orquestación IA</span><span class="dot warn"></span></div>
+      <section class="side-section">
+        <p class="side-title">Núcleo</p>
+        <div class="side-list">
+          <div class="side-item active"><span>Command Center</span><span class="dot good"></span></div>
+          <div class="side-item"><span>Customer 360</span><span class="dot warn"></span></div>
+          <div class="side-item"><span>Orquestación IA</span><span class="dot warn"></span></div>
         </div>
-      </div>
+      </section>
 
-      <div class="nav-block">
-        <p class="nav-title">Hubs</p>
-        <div class="nav-list">
-          <div class="nav-item"><span>Acquisition Hub</span><span class="dot good"></span></div>
-          <div class="nav-item"><span>Lead Intelligence</span><span class="dot good"></span></div>
-          <div class="nav-item"><span>Insights Hub</span><span class="dot warn"></span></div>
-          <div class="nav-item"><span>Competitive Radar</span><span class="dot warn"></span></div>
-          <div class="nav-item"><span>Service Hub</span><span class="dot warn"></span></div>
+      <section class="side-section">
+        <p class="side-title">Hubs</p>
+        <div class="side-list">
+          <div class="side-item"><span>Acquisition Hub</span><span class="dot good"></span></div>
+          <div class="side-item"><span>Lead Intelligence</span><span class="dot good"></span></div>
+          <div class="side-item"><span>Insights Hub</span><span class="dot warn"></span></div>
+          <div class="side-item"><span>Competitive Radar</span><span class="dot warn"></span></div>
+          <div class="side-item"><span>Service Hub</span><span class="dot warn"></span></div>
         </div>
-      </div>
+      </section>
 
-      <div class="nav-block">
-        <p class="nav-title">Canales</p>
-        <div class="nav-list" id="sidebarChannels"></div>
-      </div>
+      <section class="side-section">
+        <p class="side-title">Canales</p>
+        <div class="side-list" id="sidebarChannels"></div>
+      </section>
     </aside>
 
     <main class="main">
-      <div class="mobile-top">
-        <div class="logo">AI</div>
-        <div>
-          <strong>ACTIVA CXM</strong><br />
-          <span style="color: var(--muted); font-size: .82rem;">Command Center móvil</span>
+      <div class="mobile-topbar">
+        <div class="brand-logo">
+          <img src="/logo-activa.png" alt="Logo Activa Inversiones móvil" onerror="this.style.display='none'; this.parentNode.innerHTML='AI';" />
+        </div>
+        <div class="brand-copy">
+          <h1>ACTIVA CXM</h1>
+          <p>Enterprise Command Center</p>
         </div>
       </div>
 
-      <div class="topbar">
-        <div class="headline">
-          <h2 id="appTitle">ACTIVA Unified CXM</h2>
-          <p id="appSubtitle">
-            Plataforma unificada para marketing, ventas, automatización, listening competitivo y gestión comercial.
-          </p>
+      <section class="hero">
+        <div class="hero-top">
+          <div class="hero-copy">
+            <div class="hero-eyebrow">
+              <span class="dot good" style="box-shadow:none;"></span>
+              Plataforma operativa en despliegue continuo
+            </div>
+            <h2 id="appTitle">ACTIVA Unified CXM</h2>
+            <p id="appSubtitle">
+              Plataforma unificada para captación, ventas, CRM, inteligencia operativa, listening competitivo y automatización comercial. Diseñada para cerrar negocios antes que la competencia.
+            </p>
+          </div>
+
+          <div class="hero-actions">
+            <a class="btn secondary" href="/health" target="_blank" rel="noreferrer">Health</a>
+            <a class="btn" href="/api/dashboard/summary" target="_blank" rel="noreferrer">API Summary</a>
+            <button class="btn primary" id="refreshBtn">Actualizar panel</button>
+          </div>
         </div>
 
-        <div class="actions">
-          <a class="btn" href="/health" target="_blank" rel="noreferrer">Health</a>
-          <a class="btn" href="/api/dashboard/summary" target="_blank" rel="noreferrer">API Summary</a>
-          <button class="btn primary" id="refreshBtn">Actualizar panel</button>
-        </div>
-      </div>
+        <div class="hero-footer" id="heroFooter"></div>
+      </section>
 
       <section class="grid" id="kpiGrid"></section>
 
       <section class="grid" style="margin-top: 16px;">
         <div class="panel span-7">
-          <div class="section-title">
+          <div class="section-head">
             <div>
               <h3>Madurez automática del sistema</h3>
-              <p>Calculada según módulos activos, auditoría y objetivos alcanzados.</p>
+              <p>Calculada según objetivos, métricas reales, auditoría operativa y módulos activos.</p>
             </div>
-            <span class="badge">Auto-calculada</span>
+            <span class="pill blue">Cálculo dinámico</span>
           </div>
           <div class="progress-list" id="maturityList"></div>
         </div>
 
         <div class="panel span-5">
-          <div class="section-title">
+          <div class="section-head">
             <div>
-              <h3>Módulos</h3>
-              <p>Estado operativo de cada bloque principal.</p>
+              <h3>Estado de módulos</h3>
+              <p>Capacidad instalada y disponibilidad operacional actual.</p>
             </div>
           </div>
           <div class="module-list" id="moduleList"></div>
         </div>
 
         <div class="panel span-6">
-          <div class="section-title">
+          <div class="section-head">
             <div>
-              <h3>Métricas</h3>
-              <p>Actividad medida por el backend en tiempo real.</p>
+              <h3>Actividad de negocio</h3>
+              <p>Indicadores capturados por el backend en tiempo real.</p>
             </div>
           </div>
           <div class="metric-list" id="metricList"></div>
         </div>
 
         <div class="panel span-6">
-          <div class="section-title">
+          <div class="section-head">
             <div>
-              <h3>Objetivos</h3>
-              <p>Metas activas para crecimiento operacional.</p>
+              <h3>Objetivos vivos</h3>
+              <p>Metas del sistema para acelerar captación y ventaja competitiva.</p>
             </div>
           </div>
           <div class="goal-list" id="goalList"></div>
         </div>
 
         <div class="panel span-12">
-          <div class="section-title">
+          <div class="section-head">
+            <div>
+              <h3>Resumen ejecutivo</h3>
+              <p>Lectura rápida para entender qué ya está listo y qué desbloquea el siguiente salto.</p>
+            </div>
+          </div>
+          <div class="enterprise-note" id="enterpriseNote"></div>
+        </div>
+
+        <div class="panel span-12">
+          <div class="section-head">
             <div>
               <h3>Checklist de avance</h3>
-              <p>Qué está vivo ahora y qué sigue faltando cerrar.</p>
+              <p>Arquitectura viva, focos cerrados y próximos desbloqueos.</p>
             </div>
           </div>
           <div class="table-wrap">
@@ -617,14 +838,15 @@
         </div>
 
         <div class="panel span-12">
-          <div class="section-title">
+          <div class="section-head">
             <div>
               <h3>Auditoría reciente</h3>
-              <p>Últimos eventos registrados por el backend.</p>
+              <p>Últimos eventos registrados por la plataforma.</p>
             </div>
+            <span class="pill warn">Se muestran 12 eventos</span>
           </div>
           <div class="audit-list" id="auditList"></div>
-          <p class="footer-note">Se muestran hasta 12 eventos recientes en la vista, aunque el backend conserva más.</p>
+          <p class="footer-note">La auditoría ayuda a validar pruebas reales, detectar bloqueos y medir despliegues.</p>
         </div>
       </section>
     </main>
@@ -637,7 +859,7 @@
       pending: 'Pendiente'
     };
 
-    const statusClass = {
+    const stateTone = {
       active: 'good',
       partial: 'warn',
       pending: 'warn'
@@ -645,41 +867,41 @@
 
     const moduleRoadmap = {
       metaAds: {
-        done: 'Webhook conectado, lectura de evento, scoring y diagnóstico avanzado.',
-        next: 'Completar lectura estable de leads reales con permisos Meta aprobados.'
+        done: 'Webhook operativo, lectura de eventos, scoring y trazabilidad avanzada.',
+        next: 'Desbloquear lectura estable de leads reales con permisos Meta aprobados.'
       },
       googleAds: {
-        done: 'Endpoint base y auditoría de conversiones preparado.',
-        next: 'Subir worker de offline conversion upload.'
+        done: 'Endpoint validado con evento de prueba y auditoría activa.',
+        next: 'Subir worker de offline conversion upload y match comercial.'
       },
       tiktokAds: {
-        done: 'Endpoint base y registro de eventos preparado.',
-        next: 'Validar pixel/event y respuesta con flujo real.'
+        done: 'Endpoint validado con evento de prueba y registro operativo.',
+        next: 'Conectar eventos reales, validación pixel y trazabilidad de campañas.'
       },
       zohoCRM: {
-        done: 'Módulo CRM listo para insertar leads desde el backend.',
-        next: 'Confirmar pipeline, SLA y tareas automáticas.'
+        done: 'Módulo listo para recibir leads desde backend y enriquecer gestión comercial.',
+        next: 'Ajustar pipeline, tareas, SLA y cierre de ciclo.'
       },
       leadScoring: {
-        done: 'Scoring por reglas + IA conectado al flujo Meta.',
-        next: 'Afinar criterios VIP y ponderación comercial.'
+        done: 'Scoring por reglas + IA integrado al flujo Meta.',
+        next: 'Refinar scoring VIP y peso comercial por proyecto.'
       },
       socialListening: {
-        done: 'Endpoint base para menciones y autores únicos.',
-        next: 'Conectar fuentes reales y alertas.'
+        done: 'Endpoint base para menciones y autores únicos listo.',
+        next: 'Conectar fuentes reales, alertas y sentimiento operativo.'
       },
       competitiveRadar: {
-        done: 'Endpoint base para keywords y radar competitivo.',
-        next: 'Agregar snapshots, tracking y share of voice.'
+        done: 'Endpoint base para radar competitivo y keywords listo.',
+        next: 'Agregar snapshots, tracking diario y share of voice.'
       },
       commandCenter: {
-        done: 'Dashboard, resumen, métricas, auditoría y madurez automática.',
-        next: 'Conectar más datos reales y vistas ejecutivas.'
+        done: 'Vista ejecutiva, métricas, auditoría y madurez automática operativas.',
+        next: 'Conectar más señales reales, filtros y vistas de dirección.'
       }
     };
 
     function escapeHtml(value) {
-      return String(value)
+      return String(value ?? '')
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
         .replaceAll('>', '&gt;')
@@ -687,38 +909,102 @@
         .replaceAll("'", '&#039;');
     }
 
+    function toTitle(key) {
+      const map = {
+        metaLeads: 'Meta Leads',
+        googleConversions: 'Google Conversions',
+        tiktokEvents: 'TikTok Events',
+        vipLeads: 'VIP Leads',
+        socialMentions: 'Social Mentions',
+        socialUniqueAuthors: 'Autores Únicos'
+      };
+      return map[key] || key;
+    }
+
+    function toGoalTitle(key) {
+      const map = {
+        socialAuthorsTarget: 'Meta de autores sociales',
+        firstMetaLeadTarget: 'Primer lead Meta',
+        firstGoogleConversionTarget: 'Primera conversión Google',
+        firstTikTokEventTarget: 'Primer evento TikTok'
+      };
+      return map[key] || key;
+    }
+
+    function maturityTone(value) {
+      if (value >= 85) return 'good';
+      if (value >= 60) return 'warn';
+      return 'warn';
+    }
+
+    function renderHero(summary) {
+      const items = [
+        {
+          label: 'Versión viva',
+          value: summary.version,
+          tone: 'blue'
+        },
+        {
+          label: 'Ads Integration',
+          value: `${summary.maturity.adsIntegration}%`,
+          tone: maturityTone(summary.maturity.adsIntegration)
+        },
+        {
+          label: 'Command Center',
+          value: `${summary.maturity.commandCenter}%`,
+          tone: maturityTone(summary.maturity.commandCenter)
+        },
+        {
+          label: 'CRM Automation',
+          value: `${summary.maturity.crmAutomation}%`,
+          tone: maturityTone(summary.maturity.crmAutomation)
+        }
+      ];
+
+      document.getElementById('heroFooter').innerHTML = items.map((item) => `
+        <div class="hero-mini">
+          <small>${escapeHtml(item.label)}</small>
+          <strong>${escapeHtml(item.value)}</strong>
+        </div>
+      `).join('');
+    }
+
     function renderKpis(summary) {
       const entries = [
         {
           label: 'Versión activa',
           value: summary.version,
-          badge: 'Deploy vivo'
+          chip: 'Deploy vivo',
+          tone: 'blue'
         },
         {
           label: 'Meta leads',
           value: summary.metrics.metaLeads,
-          badge: 'Captación'
+          chip: 'Captación',
+          tone: 'warn'
         },
         {
-          label: 'VIP leads',
-          value: summary.metrics.vipLeads,
-          badge: 'Prioridad'
+          label: 'Google conversions',
+          value: summary.metrics.googleConversions,
+          chip: 'Ads',
+          tone: summary.metrics.googleConversions > 0 ? 'good' : 'warn'
         },
         {
-          label: 'Autores objetivo',
-          value: summary.goals.socialAuthorsTarget,
-          badge: 'Listening'
+          label: 'TikTok events',
+          value: summary.metrics.tiktokEvents,
+          chip: 'Performance',
+          tone: summary.metrics.tiktokEvents > 0 ? 'good' : 'warn'
         }
       ];
 
       document.getElementById('kpiGrid').innerHTML = entries.map((item) => `
         <div class="card span-3">
-          <div class="kpi-top">
+          <div class="kpi-head">
             <div>
               <div class="kpi-label">${escapeHtml(item.label)}</div>
               <div class="kpi-value">${escapeHtml(item.value)}</div>
             </div>
-            <span class="badge">${escapeHtml(item.badge)}</span>
+            <span class="pill ${escapeHtml(item.tone)}">${escapeHtml(item.chip)}</span>
           </div>
         </div>
       `).join('');
@@ -746,20 +1032,18 @@
     }
 
     function renderModules(modules) {
-      const html = Object.entries(modules).map(([key, value]) => `
+      document.getElementById('moduleList').innerHTML = Object.entries(modules).map(([key, value]) => `
         <div class="module-item">
           <strong>${escapeHtml(key)}</strong>
-          <span class="value-pill ${statusClass[value] || 'warn'}">${escapeHtml(stateLabels[value] || value)}</span>
+          <span class="value-chip ${stateTone[value] || 'warn'}">${escapeHtml(stateLabels[value] || value)}</span>
         </div>
       `).join('');
 
-      document.getElementById('moduleList').innerHTML = html;
-
-      const sidebarKeys = ['metaAds', 'googleAds', 'tiktokAds', 'zohoCRM'];
-      document.getElementById('sidebarChannels').innerHTML = sidebarKeys.map((key) => `
-        <div class="nav-item">
+      const channelKeys = ['metaAds', 'googleAds', 'tiktokAds', 'zohoCRM'];
+      document.getElementById('sidebarChannels').innerHTML = channelKeys.map((key) => `
+        <div class="side-item">
           <span>${escapeHtml(key)}</span>
-          <span class="dot ${statusClass[modules[key]] === 'good' ? 'good' : 'warn'}"></span>
+          <span class="dot ${stateTone[modules[key]] === 'good' ? 'good' : 'warn'}"></span>
         </div>
       `).join('');
     }
@@ -767,8 +1051,8 @@
     function renderMetrics(metrics) {
       document.getElementById('metricList').innerHTML = Object.entries(metrics).map(([key, value]) => `
         <div class="metric-item">
-          <strong>${escapeHtml(key)}</strong>
-          <span class="value-pill">${escapeHtml(value)}</span>
+          <strong>${escapeHtml(toTitle(key))}</strong>
+          <span class="value-chip blue">${escapeHtml(value)}</span>
         </div>
       `).join('');
     }
@@ -776,48 +1060,46 @@
     function renderGoals(goals) {
       document.getElementById('goalList').innerHTML = Object.entries(goals).map(([key, value]) => `
         <div class="goal-item">
-          <strong>${escapeHtml(key)}</strong>
-          <span class="value-pill">${escapeHtml(value)}</span>
+          <strong>${escapeHtml(toGoalTitle(key))}</strong>
+          <span class="value-chip">${escapeHtml(value)}</span>
         </div>
       `).join('');
     }
 
     function renderChecklist(modules) {
-      const rows = Object.entries(modules).map(([key, value]) => {
+      document.getElementById('checklistTable').innerHTML = Object.entries(modules).map(([key, value]) => {
         const meta = moduleRoadmap[key] || {
-          done: 'Módulo registrado.',
-          next: 'Seguir profundizando su capa real.'
+          done: 'Módulo registrado y disponible.',
+          next: 'Seguir profundizando la capa real.'
         };
 
         return `
           <tr>
             <td><strong>${escapeHtml(key)}</strong></td>
-            <td><span class="value-pill ${statusClass[value] || 'warn'}">${escapeHtml(stateLabels[value] || value)}</span></td>
+            <td><span class="value-chip ${stateTone[value] || 'warn'}">${escapeHtml(stateLabels[value] || value)}</span></td>
             <td>${escapeHtml(meta.done)}</td>
             <td>${escapeHtml(meta.next)}</td>
           </tr>
         `;
       }).join('');
-
-      document.getElementById('checklistTable').innerHTML = rows;
     }
 
     function renderAudit(audit) {
-      const items = (audit || []).slice(0, 12);
+      const list = (audit || []).slice(0, 12);
 
-      if (!items.length) {
+      if (!list.length) {
         document.getElementById('auditList').innerHTML = `
           <div class="audit-item">
             <div class="audit-head">
-              <span class="audit-type">Sin eventos todavía</span>
+              <span class="audit-type">Sin actividad todavía</span>
             </div>
-            <div class="audit-detail">Aún no hay actividad registrada en auditoría.</div>
+            <div class="audit-detail">Cuando entren pruebas o eventos reales aparecerán aquí.</div>
           </div>
         `;
         return;
       }
 
-      document.getElementById('auditList').innerHTML = items.map((item) => `
+      document.getElementById('auditList').innerHTML = list.map((item) => `
         <div class="audit-item">
           <div class="audit-head">
             <span class="audit-type">${escapeHtml(item.type)}</span>
@@ -828,6 +1110,31 @@
       `).join('');
     }
 
+    function renderEnterpriseNote(summary) {
+      const ads = summary.maturity.adsIntegration;
+      const crm = summary.maturity.crmAutomation;
+      const social = summary.maturity.socialListening;
+      const radar = summary.maturity.competitiveRadar;
+
+      let note = `
+        La plataforma ya opera como un command center real: Google Ads y TikTok Ads están validados con pruebas registradas, la madurez de Integración Ads supera el 90% y el sistema ya genera auditoría viva. 
+      `;
+
+      if (crm < 80) {
+        note += `
+          El siguiente salto de negocio está en CRM Automation: falta consolidar el paso de lead real hacia Zoho y cerrar el circuito de seguimiento comercial.
+        `;
+      }
+
+      if (social <= 20 && radar <= 20) {
+        note += `
+          Después de eso, la prioridad estratégica es activar fuentes reales para social listening y competitive radar, de modo que la ventaja ya no sea solo operativa, sino también competitiva.
+        `;
+      }
+
+      document.getElementById('enterpriseNote').textContent = note.trim();
+    }
+
     async function loadDashboard() {
       try {
         const response = await fetch('/api/dashboard/summary', { cache: 'no-store' });
@@ -835,6 +1142,7 @@
 
         document.getElementById('appTitle').textContent = summary.app || 'ACTIVA Unified CXM';
 
+        renderHero(summary);
         renderKpis(summary);
         renderMaturity(summary.maturity || {});
         renderModules(summary.modules || {});
@@ -842,8 +1150,9 @@
         renderGoals(summary.goals || {});
         renderChecklist(summary.modules || {});
         renderAudit(summary.audit || []);
+        renderEnterpriseNote(summary);
       } catch (error) {
-        document.getElementById('appTitle').textContent = 'Error cargando Command Center';
+        document.getElementById('appTitle').textContent = 'Error cargando dashboard';
         document.getElementById('appSubtitle').textContent = error.message;
       }
     }
