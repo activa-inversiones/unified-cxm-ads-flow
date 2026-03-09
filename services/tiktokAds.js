@@ -1,6 +1,8 @@
 export function registerTikTokRoutes(app, runtime, addAudit) {
   app.post('/webhook/tiktok/event', async (req, res) => {
     try {
+      console.log('📩 [TIKTOK RAW BODY]:', JSON.stringify(req.body, null, 2));
+
       const {
         eventName,
         eventTime,
@@ -12,7 +14,8 @@ export function registerTikTokRoutes(app, runtime, addAudit) {
         campaign,
         adgroup,
         ad,
-        source
+        source,
+        test_mode
       } = req.body || {};
 
       if (!eventName) {
@@ -40,17 +43,19 @@ export function registerTikTokRoutes(app, runtime, addAudit) {
         campaign: campaign || '',
         adgroup: adgroup || '',
         ad: ad || '',
-        source: source || 'TikTok Ads'
+        source: source || 'TikTok Ads',
+        test_mode: Boolean(test_mode)
       });
 
-      console.log('✅ [TIKTOK] Evento recibido');
+      console.log('✅ [TIKTOK] Evento registrado');
       console.log(
         JSON.stringify(
           {
             eventName,
             eventTime: eventTime || new Date().toISOString(),
             value: typeof value === 'undefined' ? 0 : value,
-            currency: currency || 'CLP'
+            currency: currency || 'CLP',
+            test_mode: Boolean(test_mode)
           },
           null,
           2
@@ -60,6 +65,7 @@ export function registerTikTokRoutes(app, runtime, addAudit) {
       return res.status(200).json({
         ok: true,
         received: true,
+        tiktokEvents: runtime.metrics.tiktokEvents,
         message: 'Evento TikTok registrado en auditoría'
       });
     } catch (error) {
