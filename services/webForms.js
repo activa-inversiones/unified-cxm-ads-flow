@@ -1,3 +1,6 @@
+import axios from 'axios';
+import { processInboundLead } from './crmRouter.js';
+
 export function registerWebFormRoutes(app, runtime, addAudit) {
   app.post('/webhook/web/form', async (req, res) => {
     try {
@@ -61,16 +64,29 @@ export function registerWebFormRoutes(app, runtime, addAudit) {
         test_mode: Boolean(test_mode)
       };
 
+      runtime.metrics.webFormLeads += 1;
+
       addAudit('web_form_lead_received', normalizedLead);
 
-      console.log('✅ [WEB FORM] Lead recibido');
-      console.log(JSON.stringify(normalizedLead, null, 2));
+      const result = await processInboundLead(
+        axios,
+        runtime,
+        addAudit,
+        normalizedLead,
+        { channel: 'webForms', sendToCRM: true }
+      );
+
+      console.log('✅ [WEB FORM] Lead procesado');
+      console.log(JSON.stringify(result, null, 2));
 
       return res.status(200).json({
         ok: true,
         received: true,
-        message: 'Lead web registrado en auditoría',
-        dedupe_key_hint: `${normalizedLead.source}|${normalizedLead.email}|${normalizedLead.phone}`
+        message: 'Lead web registrado y enrutado',
+        action: result.action,
+        score: result.score,
+        zoho: result.zoho,
+        dedupeKeys: result.dedupeKeys
       });
     } catch (error) {
       console.error('❌ [WEB FORM ERROR]:', error.message);
