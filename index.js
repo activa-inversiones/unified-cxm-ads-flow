@@ -5,6 +5,8 @@ import { fileURLToPath } from 'url';
 import { registerMetaRoutes } from './services/metaAds.js';
 import { registerGoogleRoutes } from './services/googleAds.js';
 import { registerTikTokRoutes } from './services/tiktokAds.js';
+import { registerSocialListeningRoutes } from './intelligence/socialListening.js';
+import { registerCompetitiveRadarRoutes } from './intelligence/competitiveRadar.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,15 +28,15 @@ app.use(express.static(__dirname));
 // =====================================================
 const runtime = {
   appName: 'ACTIVA Unified CXM',
-  version: '7.0.0',
+  version: '7.3.0',
   startedAt: new Date().toISOString(),
   maturity: {
-    adsIntegration: 70,
-    backendCXM: 80,
-    crmAutomation: 90,
-    socialListening: 20,
-    competitiveRadar: 10,
-    commandCenter: 40
+    adsIntegration: 82,
+    backendCXM: 88,
+    crmAutomation: 92,
+    socialListening: 35,
+    competitiveRadar: 25,
+    commandCenter: 55
   },
   metrics: {
     metaLeads: 0,
@@ -46,15 +48,16 @@ const runtime = {
   },
   modules: {
     metaAds: 'active',
-    googleAds: 'partial',
-    tiktokAds: 'partial',
+    googleAds: 'active',
+    tiktokAds: 'active',
     zohoCRM: 'active',
     leadScoring: 'active',
-    socialListening: 'pending',
-    competitiveRadar: 'pending',
+    socialListening: 'partial',
+    competitiveRadar: 'partial',
     commandCenter: 'active'
   },
-  audit: []
+  audit: [],
+  _socialAuthors: new Set()
 };
 
 function addAudit(type, detail = {}) {
@@ -65,7 +68,7 @@ function addAudit(type, detail = {}) {
     createdAt: new Date().toISOString()
   });
 
-  runtime.audit = runtime.audit.slice(0, 100);
+  runtime.audit = runtime.audit.slice(0, 200);
 }
 
 // =====================================================
@@ -102,6 +105,8 @@ app.get('/api/dashboard/summary', (req, res) => {
 registerMetaRoutes(app, runtime, addAudit);
 registerGoogleRoutes(app, runtime, addAudit);
 registerTikTokRoutes(app, runtime, addAudit);
+registerSocialListeningRoutes(app, runtime, addAudit);
+registerCompetitiveRadarRoutes(app, runtime, addAudit);
 
 // =====================================================
 // FALLBACK
