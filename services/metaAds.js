@@ -1,5 +1,6 @@
-
 import axios from 'axios';
+import { normalizeLeadInfoFromMeta, getFinalLeadScore } from '../intelligence/leadScoring.js';
+import { sendLeadToZoho } from './zohoCRM.js';
 
 const META_VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || '';
 const META_ACCESS_TOKEN = process.env.META_ACCESS_TOKEN || '';
@@ -57,50 +58,33 @@ export function registerMetaRoutes(app, runtime, addAudit) {
         }
       );
 
-      runtime.metrics.metaLeads += 1;
-
       const leadData = response.data;
-      const fieldData = leadData.field_data || [];
+      const leadInfo = normalizeLeadInfoFromMeta(leadData);
+      const finalScore = await getFinalLeadScore(axios, leadInfo);
+      const zohoResult = await sendLeadToZoho(axios, leadInfo, finalScore);
 
-      const getField = (name) =>
-        fieldData.find((f) => f.name === name)?.values?.[0] || '';
-
-      const budget =
-        getField('presupuesto_estimado_para_ventanas') ||
-        getField('Presupuesto estimado para ventanas');
-
-      const qty =
-        getField('cuantas_ventanas_necesitas_cotizar') ||
-        getField('¿cuántas ventanas necesitas cotizar?');
-
-      const projectType =
-        getField('tipo_de_proyecto') ||
-        getField('Tipo de proyecto');
-
-      const vip =
-        String(qty).includes('10') ||
-        String(qty).toLowerCase().includes('más de 30') ||
-        String(projectType).toLowerCase().includes('proyecto inmobiliario') ||
-        String(projectType).toLowerCase().includes('condominio') ||
-        String(budget).toLowerCase().includes('$3m') ||
-        String(budget).toLowerCase().includes('$10m');
-
-      if (vip) runtime.metrics.vipLeads += 1;
+      runtime.metrics.metaLeads += 1;
+      if (finalScore.clase === 'VIP') {
+        runtime.metrics.vipLeads += 1;
+      }
 
       addAudit('meta_lead_received', {
         leadId,
         formId,
         pageId,
-        vip
+        vip: finalScore.clase === 'VIP',
+        zohoOk: zohoResult.ok
       });
 
-      console.log('✅ [META] Lead recibido correctamente');
-      console.log(JSON.stringify(leadData, null, 2));
-
-      // Siguiente paso:
-      // conectar scoring IA + Zoho CRM aquí
+      console.log('✅ [META] Lead procesado');
+      console.log('🧠 [SCORE]:', finalScore);
+      console.log('📦 [ZOHO]:', zohoResult);
     } catch (error) {
-      console.error('❌ [META RAW ERROR]:', JSON.stringify(error.response?.data || error.message, null, 2));
+      console.error(
+        '❌ [META RAW ERROR]:',
+        JSON.stringify(error.response?.data || error.message, null, 2)
+      );
+
       addAudit('meta_error', {
         error: error.response?.data || error.message
       });
