@@ -2,30 +2,47 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ACTIVA CXM Command Center</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"
+  />
+  <title>ACTIVA CXM | Command Center</title>
   <style>
     :root {
-      --bg: #08111f;
-      --panel: #0f1c31;
-      --panel-2: #132541;
-      --line: #22385f;
-      --text: #e9eef9;
-      --muted: #95a7c7;
-      --gold: #f4b31a;
-      --blue: #2b69c9;
-      --green: #20c997;
-      --amber: #ffb020;
-      --red: #ff5d73;
-      --chip: #182b49;
-      --shadow: 0 12px 30px rgba(0,0,0,.28);
+      --bg: #07101f;
+      --panel: #0d1a2f;
+      --panel-2: #112243;
+      --border: rgba(255,255,255,.08);
+      --text: #eaf2ff;
+      --muted: #98a8c7;
+      --accent: #f4c542;
+      --accent-2: #3aa0ff;
+      --good: #36d399;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --chip: rgba(255,255,255,.06);
+      --shadow: 0 10px 30px rgba(0,0,0,.22);
       --radius: 18px;
     }
 
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; font-family: Inter, Arial, Helvetica, sans-serif; background: linear-gradient(180deg, #07101d 0%, #0b1527 100%); color: var(--text); }
-    a { color: inherit; text-decoration: none; }
-    button { font: inherit; }
+    * {
+      box-sizing: border-box;
+      min-width: 0;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(180deg, #07101f 0%, #091426 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
     .app {
       display: grid;
@@ -34,10 +51,9 @@
     }
 
     .sidebar {
-      border-right: 1px solid rgba(255,255,255,.06);
-      background: rgba(5, 12, 22, .75);
-      backdrop-filter: blur(12px);
-      padding: 24px 18px;
+      background: rgba(4, 10, 20, .94);
+      border-right: 1px solid var(--border);
+      padding: 18px 14px;
       position: sticky;
       top: 0;
       height: 100vh;
@@ -46,44 +62,51 @@
 
     .brand {
       display: flex;
-      gap: 14px;
       align-items: center;
-      margin-bottom: 28px;
+      gap: 12px;
+      margin-bottom: 18px;
     }
 
-    .brand-mark {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, rgba(244,179,26,.18), rgba(43,105,201,.18));
-      border: 1px solid rgba(255,255,255,.08);
+    .logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
       display: grid;
       place-items: center;
-      color: var(--gold);
+      background: linear-gradient(135deg, #f4c542 0%, #e8aa00 100%);
+      color: #091426;
       font-weight: 800;
       box-shadow: var(--shadow);
+      flex: 0 0 auto;
     }
 
     .brand h1 {
-      font-size: 18px;
+      font-size: 1rem;
       margin: 0;
       line-height: 1.1;
     }
 
     .brand p {
-      margin: 4px 0 0;
-      font-size: 12px;
+      margin: 2px 0 0;
+      font-size: .78rem;
       color: var(--muted);
     }
 
-    .nav-group { margin-bottom: 22px; }
+    .nav-block {
+      margin-top: 18px;
+    }
+
     .nav-title {
-      font-size: 11px;
-      letter-spacing: .12em;
-      text-transform: uppercase;
+      font-size: .72rem;
       color: var(--muted);
-      margin-bottom: 10px;
-      padding: 0 8px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin: 0 0 10px;
+    }
+
+    .nav-list {
+      display: grid;
+      gap: 8px;
     }
 
     .nav-item {
@@ -91,239 +114,135 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      padding: 12px 12px;
-      border-radius: 12px;
-      color: var(--text);
-      margin-bottom: 6px;
-      border: 1px solid transparent;
-      cursor: pointer;
-    }
-
-    .nav-item:hover, .nav-item.active {
-      background: rgba(43,105,201,.10);
-      border-color: rgba(43,105,201,.18);
-    }
-
-    .nav-left {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      min-width: 0;
-    }
-
-    .nav-icon {
-      width: 28px;
-      height: 28px;
-      border-radius: 9px;
+      padding: 12px 14px;
+      border-radius: 14px;
       background: var(--chip);
-      display: grid;
-      place-items: center;
-      font-size: 13px;
-      color: var(--gold);
-      flex: 0 0 auto;
+      border: 1px solid transparent;
+      font-size: .95rem;
     }
 
-    .status-dot {
-      width: 10px;
-      height: 10px;
+    .nav-item.active {
+      border-color: rgba(244,197,66,.3);
+      background: rgba(244,197,66,.08);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
       border-radius: 999px;
       flex: 0 0 auto;
+      background: var(--warn);
     }
 
-    .done { background: var(--green); }
-    .progress { background: var(--amber); }
-    .missing { background: var(--red); }
+    .dot.good { background: var(--good); }
+    .dot.warn { background: var(--warn); }
+    .dot.bad { background: var(--bad); }
 
     .main {
-      padding: 26px;
-      overflow-x: hidden;
+      padding: 22px;
     }
 
     .topbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 22px;
+      gap: 14px;
+      margin-bottom: 18px;
       flex-wrap: wrap;
     }
 
-    .hero h2 {
+    .headline h2 {
       margin: 0;
-      font-size: 30px;
-      letter-spacing: -.02em;
+      font-size: clamp(1.35rem, 2vw, 2.1rem);
+      line-height: 1.05;
     }
 
-    .hero p {
-      margin: 8px 0 0;
+    .headline p {
+      margin: 6px 0 0;
       color: var(--muted);
       max-width: 900px;
-      line-height: 1.5;
+      font-size: .96rem;
     }
 
     .actions {
       display: flex;
-      gap: 10px;
       flex-wrap: wrap;
+      gap: 10px;
     }
 
     .btn {
-      padding: 12px 16px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,.09);
+      border: 1px solid var(--border);
       background: var(--panel);
       color: var(--text);
+      padding: 11px 14px;
+      border-radius: 12px;
+      font-weight: 600;
       cursor: pointer;
-      transition: .2s ease;
     }
 
-    .btn:hover { transform: translateY(-1px); }
     .btn.primary {
-      background: linear-gradient(135deg, var(--gold), #ffca4e);
-      color: #111827;
-      font-weight: 700;
-      border: none;
+      background: linear-gradient(135deg, #f4c542 0%, #e8aa00 100%);
+      color: #07101f;
+      border-color: transparent;
     }
 
     .grid {
       display: grid;
-      gap: 18px;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 16px;
     }
 
-    .kpi-grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      margin-bottom: 18px;
-    }
-
-    .card {
-      background: linear-gradient(180deg, rgba(20,36,62,.95), rgba(13,25,45,.95));
-      border: 1px solid rgba(255,255,255,.06);
+    .card,
+    .panel {
+      background: linear-gradient(180deg, rgba(15,27,49,.98) 0%, rgba(12,22,41,.98) 100%);
+      border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
     }
 
-    .card-body { padding: 18px; }
-    .card-header {
+    .card {
+      padding: 18px;
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+
+    .kpi-top {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 12px;
-      padding: 18px 18px 0;
     }
 
-    .card h3, .card h4 {
-      margin: 0;
-      font-size: 16px;
-      letter-spacing: -.01em;
-    }
-
-    .muted { color: var(--muted); }
-    .small { font-size: 12px; }
-
-    .kpi-value {
-      font-size: 34px;
-      font-weight: 800;
-      margin: 8px 0 6px;
-    }
-
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 7px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      background: var(--chip);
-      color: var(--text);
-      border: 1px solid rgba(255,255,255,.06);
-    }
-
-    .chip.done { color: #baf5e5; }
-    .chip.progress { color: #ffe2a1; }
-    .chip.missing { color: #ffc7cf; }
-
-    .layout-2 {
-      grid-template-columns: 1.2fr .8fr;
-      margin-bottom: 18px;
-    }
-
-    .layout-3 {
-      grid-template-columns: 1fr 1fr 1fr;
-      margin-bottom: 18px;
-    }
-
-    .table-wrap { overflow: auto; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 900px;
-    }
-
-    th, td {
-      text-align: left;
-      padding: 13px 14px;
-      border-bottom: 1px solid rgba(255,255,255,.06);
-      vertical-align: top;
-      font-size: 14px;
-    }
-
-    th {
+    .kpi-label {
       color: var(--muted);
-      font-weight: 600;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 10px;
-      background: rgba(255,255,255,.06);
-      border-radius: 999px;
-      overflow: hidden;
-      margin-top: 8px;
-    }
-
-    .progress-fill {
-      height: 100%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--gold), #ffda75);
-    }
-
-    .module-list {
-      display: grid;
-      gap: 12px;
-      margin-top: 14px;
-    }
-
-    .module-item {
-      padding: 14px;
-      border-radius: 14px;
-      background: rgba(255,255,255,.03);
-      border: 1px solid rgba(255,255,255,.05);
-    }
-
-    .module-top {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
+      font-size: .84rem;
       margin-bottom: 8px;
     }
 
-    .steps {
-      margin: 0;
-      padding-left: 18px;
-      color: var(--muted);
-      line-height: 1.55;
+    .kpi-value {
+      font-size: clamp(1.45rem, 3vw, 2rem);
+      font-weight: 800;
+      line-height: 1;
     }
 
-    .footer-note {
-      margin-top: 18px;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
+    .badge {
+      font-size: .72rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(244,197,66,.12);
+      color: #ffd76a;
+      border: 1px solid rgba(244,197,66,.18);
+      white-space: nowrap;
     }
 
     .section-title {
@@ -331,31 +250,242 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
     }
 
-    .badge {
-      display: inline-flex;
-      align-items: center;
+    .section-title h3 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .section-title p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    .progress-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .progress-row {
+      display: grid;
       gap: 8px;
-      padding: 7px 10px;
-      border-radius: 999px;
-      background: rgba(32,201,151,.12);
-      color: #9ff0d3;
-      border: 1px solid rgba(32,201,151,.22);
-      font-size: 12px;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: .92rem;
+      flex-wrap: wrap;
+    }
+
+    .progress-name {
       font-weight: 600;
     }
 
+    .progress-value {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .bar {
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      overflow: hidden;
+    }
+
+    .bar > span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #f4c542 0%, #ffd76a 100%);
+    }
+
+    .metric-list,
+    .module-list,
+    .goal-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .metric-item,
+    .module-item,
+    .goal-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.04);
+      flex-wrap: wrap;
+    }
+
+    .metric-item strong,
+    .module-item strong,
+    .goal-item strong {
+      font-size: .95rem;
+    }
+
+    .value-pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(58,160,255,.14);
+      color: #8dc8ff;
+      border: 1px solid rgba(58,160,255,.16);
+      font-size: .84rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .value-pill.good {
+      background: rgba(54,211,153,.12);
+      color: #8ef0c1;
+      border-color: rgba(54,211,153,.16);
+    }
+
+    .value-pill.warn {
+      background: rgba(245,158,11,.12);
+      color: #ffd28c;
+      border-color: rgba(245,158,11,.16);
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 14px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+      overflow: hidden;
+      background: rgba(255,255,255,.03);
+      border-radius: 14px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      vertical-align: top;
+      font-size: .9rem;
+      word-break: break-word;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      background: rgba(255,255,255,.03);
+    }
+
+    .audit-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .audit-item {
+      border: 1px solid rgba(255,255,255,.06);
+      background: rgba(255,255,255,.03);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .audit-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .audit-type {
+      font-weight: 700;
+      color: #f1f6ff;
+    }
+
+    .audit-date {
+      color: var(--muted);
+      font-size: .82rem;
+    }
+
+    .audit-detail {
+      color: var(--muted);
+      font-size: .88rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: .84rem;
+      margin-top: 6px;
+    }
+
+    .mobile-top {
+      display: none;
+    }
+
     @media (max-width: 1180px) {
-      .app { grid-template-columns: 1fr; }
-      .sidebar {
-        position: relative;
-        height: auto;
-        border-right: none;
-        border-bottom: 1px solid rgba(255,255,255,.06);
+      .app {
+        grid-template-columns: 1fr;
       }
-      .kpi-grid, .layout-2, .layout-3 { grid-template-columns: 1fr; }
+
+      .sidebar {
+        display: none;
+      }
+
+      .mobile-top {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .span-3,
+      .span-4,
+      .span-5,
+      .span-6,
+      .span-7,
+      .span-8 {
+        grid-column: span 12;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .main {
+        padding: 14px;
+      }
+
+      .card,
+      .panel {
+        padding: 14px;
+      }
+
+      .btn {
+        width: 100%;
+        text-align: center;
+      }
+
+      .actions {
+        width: 100%;
+      }
+
+      table {
+        min-width: 680px;
+      }
     }
   </style>
 </head>
@@ -363,349 +493,365 @@
   <div class="app">
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-mark">AI</div>
+        <div class="logo">AI</div>
         <div>
           <h1>ACTIVA CXM</h1>
           <p>Unified Command Center</p>
         </div>
       </div>
 
-      <div class="nav-group">
-        <div class="nav-title">Núcleo</div>
-        <div class="nav-item active">
-          <div class="nav-left"><div class="nav-icon">⌘</div><span>Command Center</span></div>
-          <span class="status-dot progress"></span>
-        </div>
-        <div class="nav-item">
-          <div class="nav-left"><div class="nav-icon">∞</div><span>Customer 360</span></div>
-          <span class="status-dot progress"></span>
-        </div>
-        <div class="nav-item">
-          <div class="nav-left"><div class="nav-icon">⚙</div><span>Orquestación IA</span></div>
-          <span class="status-dot progress"></span>
+      <div class="nav-block">
+        <p class="nav-title">Núcleo</p>
+        <div class="nav-list">
+          <div class="nav-item active"><span>Command Center</span><span class="dot good"></span></div>
+          <div class="nav-item"><span>Customer 360</span><span class="dot warn"></span></div>
+          <div class="nav-item"><span>Orquestación IA</span><span class="dot warn"></span></div>
         </div>
       </div>
 
-      <div class="nav-group">
-        <div class="nav-title">Hubs</div>
-        <div class="nav-item">
-          <div class="nav-left"><div class="nav-icon">📣</div><span>Acquisition Hub</span></div>
-          <span class="status-dot progress"></span>
-        </div>
-        <div class="nav-item">
-          <div class="nav-left"><div class="nav-icon">🧠</div><span>Lead Intelligence</span></div>
-          <span class="status-dot progress"></span>
-        </div>
-        <div class="nav-item">
-          <div class="nav-left"><div class="nav-icon">👂</div><span>Insights Hub</span></div>
-          <span class="status-dot missing"></span>
-        </div>
-        <div class="nav-item">
-          <div class="nav-left"><div class="nav-icon">📡</div><span>Competitive Radar</span></div>
-          <span class="status-dot missing"></span>
-        </div>
-        <div class="nav-item">
-          <div class="nav-left"><div class="nav-icon">💬</div><span>Service Hub</span></div>
-          <span class="status-dot progress"></span>
+      <div class="nav-block">
+        <p class="nav-title">Hubs</p>
+        <div class="nav-list">
+          <div class="nav-item"><span>Acquisition Hub</span><span class="dot good"></span></div>
+          <div class="nav-item"><span>Lead Intelligence</span><span class="dot good"></span></div>
+          <div class="nav-item"><span>Insights Hub</span><span class="dot warn"></span></div>
+          <div class="nav-item"><span>Competitive Radar</span><span class="dot warn"></span></div>
+          <div class="nav-item"><span>Service Hub</span><span class="dot warn"></span></div>
         </div>
       </div>
 
-      <div class="nav-group">
-        <div class="nav-title">Canales</div>
-        <div class="nav-item"><div class="nav-left"><div class="nav-icon">M</div><span>Meta Ads</span></div><span class="status-dot progress"></span></div>
-        <div class="nav-item"><div class="nav-left"><div class="nav-icon">G</div><span>Google Ads</span></div><span class="status-dot progress"></span></div>
-        <div class="nav-item"><div class="nav-left"><div class="nav-icon">T</div><span>TikTok Ads</span></div><span class="status-dot progress"></span></div>
-        <div class="nav-item"><div class="nav-left"><div class="nav-icon">Z</div><span>Zoho CRM</span></div><span class="status-dot done"></span></div>
-        <div class="nav-item"><div class="nav-left"><div class="nav-icon">W</div><span>WhatsApp</span></div><span class="status-dot progress"></span></div>
+      <div class="nav-block">
+        <p class="nav-title">Canales</p>
+        <div class="nav-list" id="sidebarChannels"></div>
       </div>
     </aside>
 
     <main class="main">
-      <div class="topbar">
-        <div class="hero">
-          <h2>ACTIVA Customer Experience Management Platform</h2>
-          <p>
-            Plataforma unificada para marketing, ventas, servicio, inteligencia competitiva y escucha social.
-            La meta no es parecerse a Sprinklr, Salesforce Marketing Cloud o HubSpot Enterprise: es superarlos con
-            velocidad, foco comercial, arquitectura propia y automatización orientada a clientes de alto valor.
-          </p>
-        </div>
-        <div class="actions">
-          <button class="btn">Exportar roadmap</button>
-          <button class="btn">Ver arquitectura</button>
-          <button class="btn primary">Crear siguiente módulo</button>
+      <div class="mobile-top">
+        <div class="logo">AI</div>
+        <div>
+          <strong>ACTIVA CXM</strong><br />
+          <span style="color: var(--muted); font-size: .82rem;">Command Center móvil</span>
         </div>
       </div>
 
-      <section class="grid kpi-grid">
-        <div class="card"><div class="card-body"><div class="muted small">Madurez Ads</div><div class="kpi-value">70%</div><div class="chip progress">En evolución</div></div></div>
-        <div class="card"><div class="card-body"><div class="muted small">Madurez Backend CXM</div><div class="kpi-value">80%</div><div class="chip progress">Base sólida</div></div></div>
-        <div class="card"><div class="card-body"><div class="muted small">Madurez CRM Automation</div><div class="kpi-value">90%</div><div class="chip done">Muy avanzado</div></div></div>
-        <div class="card"><div class="card-body"><div class="muted small">Meta social listening</div><div class="kpi-value">1000</div><div class="chip missing">Autores únicos objetivo</div></div></div>
-      </section>
-
-      <section class="grid layout-2">
-        <div class="card">
-          <div class="card-header">
-            <h3>Matriz actual vs objetivo</h3>
-            <span class="badge">Roadmap vivo</span>
-          </div>
-          <div class="card-body table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Fase</th>
-                  <th>Estado actual</th>
-                  <th>Qué tenemos</th>
-                  <th>Qué falta</th>
-                  <th>Objetivo</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Integración Ads</strong></td>
-                  <td>70%</td>
-                  <td>Meta Ads webhook, formularios premium, Google staging, TikTok endpoint</td>
-                  <td>Offline conversions Google, TikTok Events validados, CAPI y control de errores por canal</td>
-                  <td><span class="chip progress">Subir a 100%</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Backend CXM</strong></td>
-                  <td>80%</td>
-                  <td>Hub central en Railway, healthcheck, scoring, Zoho, auditoría básica</td>
-                  <td>Persistencia real, colas, workers, auth, versionado por servicios</td>
-                  <td><span class="chip progress">Subir a 100%</span></td>
-                </tr>
-                <tr>
-                  <td><strong>CRM Automation</strong></td>
-                  <td>90%</td>
-                  <td>Leads Meta → scoring → Zoho CRM</td>
-                  <td>Routing comercial, SLA, devolución de conversiones, cierre ganado</td>
-                  <td><span class="chip done">Muy cerca</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Social Listening</strong></td>
-                  <td>20%</td>
-                  <td>Endpoint de ingest preparado</td>
-                  <td>Conectores, sentimiento, reach, autores únicos, alertas</td>
-                  <td><span class="chip missing">Construir</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Competitive Radar</strong></td>
-                  <td>10%</td>
-                  <td>Modelo conceptual y endpoint keyword ingest</td>
-                  <td>Tracking diario de keywords, share of voice, snapshots y alertas</td>
-                  <td><span class="chip missing">Construir</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Command Center</strong></td>
-                  <td>40%</td>
-                  <td>Vista inicial y KPIs de madurez</td>
-                  <td>Datos reales, filtros, SLA, comercial, reputación, competencia</td>
-                  <td><span class="chip progress">Escalar</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+      <div class="topbar">
+        <div class="headline">
+          <h2 id="appTitle">ACTIVA Unified CXM</h2>
+          <p id="appSubtitle">
+            Plataforma unificada para marketing, ventas, automatización, listening competitivo y gestión comercial.
+          </p>
         </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h3>Cómo construiremos mejor que ellos</h3>
-            <span class="chip progress">Ventaja propia</span>
+        <div class="actions">
+          <a class="btn" href="/health" target="_blank" rel="noreferrer">Health</a>
+          <a class="btn" href="/api/dashboard/summary" target="_blank" rel="noreferrer">API Summary</a>
+          <button class="btn primary" id="refreshBtn">Actualizar panel</button>
+        </div>
+      </div>
+
+      <section class="grid" id="kpiGrid"></section>
+
+      <section class="grid" style="margin-top: 16px;">
+        <div class="panel span-7">
+          <div class="section-title">
+            <div>
+              <h3>Madurez automática del sistema</h3>
+              <p>Calculada según módulos activos, auditoría y objetivos alcanzados.</p>
+            </div>
+            <span class="badge">Auto-calculada</span>
           </div>
-          <div class="card-body">
-            <div class="module-list">
-              <div class="module-item">
-                <div class="module-top"><strong>1. Más rápido que suites enterprise</strong><span class="chip progress">Foco</span></div>
-                <div class="muted">Sin depender de consultoría eterna. Módulos pequeños, desplegables y medibles.</div>
-              </div>
-              <div class="module-item">
-                <div class="module-top"><strong>2. Pensado para cerrar negocio</strong><span class="chip done">Diferenciador</span></div>
-                <div class="muted">La prioridad es detectar leads premium, enrutar VIP y empujar ventas, no solo mostrar dashboards bonitos.</div>
-              </div>
-              <div class="module-item">
-                <div class="module-top"><strong>3. Arquitectura modular</strong><span class="chip progress">Clave</span></div>
-                <div class="muted">Cada hub crece por separado: Ads, Insights, Radar, Service, CRM. Sin romper lo ya ganado.</div>
-              </div>
-              <div class="module-item">
-                <div class="module-top"><strong>4. IA operativa</strong><span class="chip progress">Próximo salto</span></div>
-                <div class="muted">Scoring, clasificación, respuestas, enriquecimiento y decisiones de pauta con lógica real.</div>
-              </div>
+          <div class="progress-list" id="maturityList"></div>
+        </div>
+
+        <div class="panel span-5">
+          <div class="section-title">
+            <div>
+              <h3>Módulos</h3>
+              <p>Estado operativo de cada bloque principal.</p>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section class="grid layout-3">
-        <div class="card">
-          <div class="card-header"><h4>Acquisition Hub</h4><span class="chip progress">En progreso</span></div>
-          <div class="card-body">
-            <div class="muted">Canales que ya entran o deben entrar al hub.</div>
-            <ul class="steps">
-              <li>Meta Ads: webhook leadgen, leadgen_update, formulario premium</li>
-              <li>Google Ads: staging de conversiones offline + gclid</li>
-              <li>TikTok Ads: Contact + SubmitForm vía Events API</li>
-              <li>WhatsApp Ads / Messenger: conexión controlada, no invasiva</li>
-            </ul>
-          </div>
+          <div class="module-list" id="moduleList"></div>
         </div>
 
-        <div class="card">
-          <div class="card-header"><h4>Lead Intelligence Hub</h4><span class="chip progress">Operativo parcial</span></div>
-          <div class="card-body">
-            <div class="muted">Qué ya funciona y qué debemos separar como módulo.</div>
-            <ul class="steps">
-              <li>Scoring por reglas: ventanas, proyecto, presupuesto</li>
-              <li>Scoring IA: clasificación VIP / Normal</li>
-              <li>Zoho CRM: inserción automática</li>
-              <li>Falta: playbooks de ventas, SLA, recontacto y closed-loop</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header"><h4>Insights Hub</h4><span class="chip missing">Pendiente</span></div>
-          <div class="card-body">
-            <div class="muted">Meta operativa mínima para no improvisar.</div>
-            <ul class="steps">
-              <li>Objetivo: 1000 autores únicos monitorizados</li>
-              <li>Métricas: mentions, reach, sentiment, competitor, keyword</li>
-              <li>Ingesta: X, Instagram, Facebook, YouTube, LinkedIn, scraping permitido</li>
-              <li>Falta: conectores reales + modelo de alertas</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <section class="grid layout-2">
-        <div class="card">
-          <div class="card-header">
-            <h3>Plan de construcción sostenida</h3>
-            <span class="chip done">Sin perder nada ganado</span>
-          </div>
-          <div class="card-body">
-            <div class="module-list">
-              <div class="module-item">
-                <div class="module-top"><strong>Fase 1</strong><span class="chip done">Ahora</span></div>
-                <div class="muted">Consolidar Meta Ads → scoring → Zoho y dejar el formulario premium como principal.</div>
-              </div>
-              <div class="module-item">
-                <div class="module-top"><strong>Fase 2</strong><span class="chip progress">Siguiente</span></div>
-                <div class="muted">Crear módulo separado de Google Ads conversions con su propio endpoint y dashboard de retorno.</div>
-              </div>
-              <div class="module-item">
-                <div class="module-top"><strong>Fase 3</strong><span class="chip progress">Siguiente</span></div>
-                <div class="muted">Crear módulo TikTok Ads con eventos mínimos y validación end-to-end.</div>
-              </div>
-              <div class="module-item">
-                <div class="module-top"><strong>Fase 4</strong><span class="chip missing">Después</span></div>
-                <div class="muted">Social listening como servicio separado, pero visible desde este mismo Command Center.</div>
-              </div>
-              <div class="module-item">
-                <div class="module-top"><strong>Fase 5</strong><span class="chip missing">Después</span></div>
-                <div class="muted">Competitive radar y keyword intelligence con snapshots diarios y alertas.</div>
-              </div>
+        <div class="panel span-6">
+          <div class="section-title">
+            <div>
+              <h3>Métricas</h3>
+              <p>Actividad medida por el backend en tiempo real.</p>
             </div>
-            <p class="footer-note">
-              Recomendación: construir cada hub como módulo separado y mantener un solo <strong>Command Center</strong> arriba.
-              Así no rompes el sistema al crecer y puedes desplegar en forma sostenida.
-            </p>
           </div>
+          <div class="metric-list" id="metricList"></div>
         </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h3>Qué nos falta exactamente</h3>
-            <span class="chip progress">Checklist viva</span>
+        <div class="panel span-6">
+          <div class="section-title">
+            <div>
+              <h3>Objetivos</h3>
+              <p>Metas activas para crecimiento operacional.</p>
+            </div>
           </div>
-          <div class="card-body table-wrap">
+          <div class="goal-list" id="goalList"></div>
+        </div>
+
+        <div class="panel span-12">
+          <div class="section-title">
+            <div>
+              <h3>Checklist de avance</h3>
+              <p>Qué está vivo ahora y qué sigue faltando cerrar.</p>
+            </div>
+          </div>
+          <div class="table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>Módulo</th>
-                  <th>Falta</th>
-                  <th>Prioridad</th>
+                  <th>Estado</th>
+                  <th>Qué ya tenemos</th>
+                  <th>Qué sigue</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td>Meta Ads</td>
-                  <td>Lead real estable, más logging, control de duplicados, CAPI</td>
-                  <td>Alta</td>
-                </tr>
-                <tr>
-                  <td>Google Ads</td>
-                  <td>Worker para offline conversion upload</td>
-                  <td>Alta</td>
-                </tr>
-                <tr>
-                  <td>TikTok Ads</td>
-                  <td>Validación pixel/event y respuesta API</td>
-                  <td>Alta</td>
-                </tr>
-                <tr>
-                  <td>Zoho CRM</td>
-                  <td>Automatización de pipeline, SLA, tareas y closed-loop</td>
-                  <td>Alta</td>
-                </tr>
-                <tr>
-                  <td>Social Listening</td>
-                  <td>Conectores reales + meta 1000 autores únicos</td>
-                  <td>Media</td>
-                </tr>
-                <tr>
-                  <td>Competitive Radar</td>
-                  <td>Keyword tracking, ranking, share of voice</td>
-                  <td>Media</td>
-                </tr>
-                <tr>
-                  <td>Command Center</td>
-                  <td>Conectar cards y tablas a datos reales del backend</td>
-                  <td>Alta</td>
-                </tr>
-              </tbody>
+              <tbody id="checklistTable"></tbody>
             </table>
           </div>
         </div>
-      </section>
 
-      <section class="card">
-        <div class="card-header">
-          <h3>Madurez del sistema</h3>
-          <span class="chip progress">Subida controlada</span>
-        </div>
-        <div class="card-body">
-          <div class="module-list">
-            <div class="module-item">
-              <div class="module-top"><strong>Integración Ads</strong><strong>70%</strong></div>
-              <div class="progress-bar"><div class="progress-fill" style="width:70%"></div></div>
-            </div>
-            <div class="module-item">
-              <div class="module-top"><strong>Backend CXM</strong><strong>80%</strong></div>
-              <div class="progress-bar"><div class="progress-fill" style="width:80%"></div></div>
-            </div>
-            <div class="module-item">
-              <div class="module-top"><strong>CRM Automation</strong><strong>90%</strong></div>
-              <div class="progress-bar"><div class="progress-fill" style="width:90%"></div></div>
-            </div>
-            <div class="module-item">
-              <div class="module-top"><strong>Social Listening</strong><strong>20%</strong></div>
-              <div class="progress-bar"><div class="progress-fill" style="width:20%"></div></div>
-            </div>
-            <div class="module-item">
-              <div class="module-top"><strong>Competitive Radar</strong><strong>10%</strong></div>
-              <div class="progress-bar"><div class="progress-fill" style="width:10%"></div></div>
-            </div>
-            <div class="module-item">
-              <div class="module-top"><strong>Command Center</strong><strong>40%</strong></div>
-              <div class="progress-bar"><div class="progress-fill" style="width:40%"></div></div>
+        <div class="panel span-12">
+          <div class="section-title">
+            <div>
+              <h3>Auditoría reciente</h3>
+              <p>Últimos eventos registrados por el backend.</p>
             </div>
           </div>
+          <div class="audit-list" id="auditList"></div>
+          <p class="footer-note">Se muestran hasta 12 eventos recientes en la vista, aunque el backend conserva más.</p>
         </div>
       </section>
     </main>
   </div>
+
+  <script>
+    const stateLabels = {
+      active: 'Activo',
+      partial: 'Parcial',
+      pending: 'Pendiente'
+    };
+
+    const statusClass = {
+      active: 'good',
+      partial: 'warn',
+      pending: 'warn'
+    };
+
+    const moduleRoadmap = {
+      metaAds: {
+        done: 'Webhook conectado, lectura de evento, scoring y diagnóstico avanzado.',
+        next: 'Completar lectura estable de leads reales con permisos Meta aprobados.'
+      },
+      googleAds: {
+        done: 'Endpoint base y auditoría de conversiones preparado.',
+        next: 'Subir worker de offline conversion upload.'
+      },
+      tiktokAds: {
+        done: 'Endpoint base y registro de eventos preparado.',
+        next: 'Validar pixel/event y respuesta con flujo real.'
+      },
+      zohoCRM: {
+        done: 'Módulo CRM listo para insertar leads desde el backend.',
+        next: 'Confirmar pipeline, SLA y tareas automáticas.'
+      },
+      leadScoring: {
+        done: 'Scoring por reglas + IA conectado al flujo Meta.',
+        next: 'Afinar criterios VIP y ponderación comercial.'
+      },
+      socialListening: {
+        done: 'Endpoint base para menciones y autores únicos.',
+        next: 'Conectar fuentes reales y alertas.'
+      },
+      competitiveRadar: {
+        done: 'Endpoint base para keywords y radar competitivo.',
+        next: 'Agregar snapshots, tracking y share of voice.'
+      },
+      commandCenter: {
+        done: 'Dashboard, resumen, métricas, auditoría y madurez automática.',
+        next: 'Conectar más datos reales y vistas ejecutivas.'
+      }
+    };
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function renderKpis(summary) {
+      const entries = [
+        {
+          label: 'Versión activa',
+          value: summary.version,
+          badge: 'Deploy vivo'
+        },
+        {
+          label: 'Meta leads',
+          value: summary.metrics.metaLeads,
+          badge: 'Captación'
+        },
+        {
+          label: 'VIP leads',
+          value: summary.metrics.vipLeads,
+          badge: 'Prioridad'
+        },
+        {
+          label: 'Autores objetivo',
+          value: summary.goals.socialAuthorsTarget,
+          badge: 'Listening'
+        }
+      ];
+
+      document.getElementById('kpiGrid').innerHTML = entries.map((item) => `
+        <div class="card span-3">
+          <div class="kpi-top">
+            <div>
+              <div class="kpi-label">${escapeHtml(item.label)}</div>
+              <div class="kpi-value">${escapeHtml(item.value)}</div>
+            </div>
+            <span class="badge">${escapeHtml(item.badge)}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderMaturity(maturity) {
+      const labels = [
+        ['adsIntegration', 'Integración Ads'],
+        ['backendCXM', 'Backend CXM'],
+        ['crmAutomation', 'CRM Automation'],
+        ['socialListening', 'Social Listening'],
+        ['competitiveRadar', 'Competitive Radar'],
+        ['commandCenter', 'Command Center']
+      ];
+
+      document.getElementById('maturityList').innerHTML = labels.map(([key, label]) => `
+        <div class="progress-row">
+          <div class="progress-meta">
+            <span class="progress-name">${escapeHtml(label)}</span>
+            <span class="progress-value">${escapeHtml(maturity[key])}%</span>
+          </div>
+          <div class="bar"><span style="width:${Number(maturity[key])}%;"></span></div>
+        </div>
+      `).join('');
+    }
+
+    function renderModules(modules) {
+      const html = Object.entries(modules).map(([key, value]) => `
+        <div class="module-item">
+          <strong>${escapeHtml(key)}</strong>
+          <span class="value-pill ${statusClass[value] || 'warn'}">${escapeHtml(stateLabels[value] || value)}</span>
+        </div>
+      `).join('');
+
+      document.getElementById('moduleList').innerHTML = html;
+
+      const sidebarKeys = ['metaAds', 'googleAds', 'tiktokAds', 'zohoCRM'];
+      document.getElementById('sidebarChannels').innerHTML = sidebarKeys.map((key) => `
+        <div class="nav-item">
+          <span>${escapeHtml(key)}</span>
+          <span class="dot ${statusClass[modules[key]] === 'good' ? 'good' : 'warn'}"></span>
+        </div>
+      `).join('');
+    }
+
+    function renderMetrics(metrics) {
+      document.getElementById('metricList').innerHTML = Object.entries(metrics).map(([key, value]) => `
+        <div class="metric-item">
+          <strong>${escapeHtml(key)}</strong>
+          <span class="value-pill">${escapeHtml(value)}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderGoals(goals) {
+      document.getElementById('goalList').innerHTML = Object.entries(goals).map(([key, value]) => `
+        <div class="goal-item">
+          <strong>${escapeHtml(key)}</strong>
+          <span class="value-pill">${escapeHtml(value)}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderChecklist(modules) {
+      const rows = Object.entries(modules).map(([key, value]) => {
+        const meta = moduleRoadmap[key] || {
+          done: 'Módulo registrado.',
+          next: 'Seguir profundizando su capa real.'
+        };
+
+        return `
+          <tr>
+            <td><strong>${escapeHtml(key)}</strong></td>
+            <td><span class="value-pill ${statusClass[value] || 'warn'}">${escapeHtml(stateLabels[value] || value)}</span></td>
+            <td>${escapeHtml(meta.done)}</td>
+            <td>${escapeHtml(meta.next)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('checklistTable').innerHTML = rows;
+    }
+
+    function renderAudit(audit) {
+      const items = (audit || []).slice(0, 12);
+
+      if (!items.length) {
+        document.getElementById('auditList').innerHTML = `
+          <div class="audit-item">
+            <div class="audit-head">
+              <span class="audit-type">Sin eventos todavía</span>
+            </div>
+            <div class="audit-detail">Aún no hay actividad registrada en auditoría.</div>
+          </div>
+        `;
+        return;
+      }
+
+      document.getElementById('auditList').innerHTML = items.map((item) => `
+        <div class="audit-item">
+          <div class="audit-head">
+            <span class="audit-type">${escapeHtml(item.type)}</span>
+            <span class="audit-date">${escapeHtml(item.createdAt)}</span>
+          </div>
+          <div class="audit-detail">${escapeHtml(JSON.stringify(item.detail, null, 2))}</div>
+        </div>
+      `).join('');
+    }
+
+    async function loadDashboard() {
+      try {
+        const response = await fetch('/api/dashboard/summary', { cache: 'no-store' });
+        const summary = await response.json();
+
+        document.getElementById('appTitle').textContent = summary.app || 'ACTIVA Unified CXM';
+
+        renderKpis(summary);
+        renderMaturity(summary.maturity || {});
+        renderModules(summary.modules || {});
+        renderMetrics(summary.metrics || {});
+        renderGoals(summary.goals || {});
+        renderChecklist(summary.modules || {});
+        renderAudit(summary.audit || []);
+      } catch (error) {
+        document.getElementById('appTitle').textContent = 'Error cargando Command Center';
+        document.getElementById('appSubtitle').textContent = error.message;
+      }
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
+
+    loadDashboard();
+    setInterval(loadDashboard, 20000);
+  </script>
 </body>
 </html>
-
