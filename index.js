@@ -14,15 +14,21 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// =====================================================
+// APP CONFIG
+// =====================================================
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
 
+// =====================================================
+// SIMPLE RUNTIME STATE
+// =====================================================
 const runtime = {
   appName: 'ACTIVA Unified CXM',
-  version: '7.4.0',
+  version: '7.5.0',
   startedAt: new Date().toISOString(),
 
   metrics: {
@@ -71,79 +77,139 @@ function points(condition, value) {
   return condition ? value : 0;
 }
 
-function calcProgressBySteps(current, steps = []) {
-  let total = 0;
-  for (const step of steps) {
-    total += current >= step ? 1 : 0;
-  }
-  return Math.round((total / steps.length) * 100);
+function hasAuditType(prefixes = []) {
+  return runtime.audit.some((item) =>
+    prefixes.some((prefix) => item.type.startsWith(prefix))
+  );
 }
 
-function calculateMaturity(runtime) {
-  const adsIntegration =
-    points(runtime.modules.metaAds === 'active', 30) +
-    points(runtime.modules.googleAds === 'active', 25) +
-    points(runtime.modules.tiktokAds === 'active', 25) +
-    points(
-      runtime.metrics.metaLeads > 0 ||
-      runtime.metrics.googleConversions > 0 ||
-      runtime.metrics.tiktokEvents > 0,
-      20
-    );
+function clamp100(value) {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
 
-  const backendCXM =
-    points(runtime.modules.commandCenter === 'active', 20) +
-    points(runtime.modules.leadScoring === 'active', 20) +
-    points(runtime.modules.zohoCRM === 'active', 20) +
-    points(runtime.audit.length > 0, 20) +
-    points(runtime.metrics.metaLeads >= 0, 20);
+function progressTowardsTarget(current, target, maxPoints) {
+  if (!target || target <= 0) return 0;
+  return Math.min(maxPoints, (current / target) * maxPoints);
+}
 
-  const crmAutomation =
-    points(runtime.modules.zohoCRM === 'active', 40) +
-    points(runtime.modules.leadScoring === 'active', 20) +
-    points(runtime.metrics.vipLeads >= 0, 10) +
-    points(runtime.metrics.metaLeads > 0, 15) +
-    points(runtime.audit.some(a => a.type === 'meta_lead_success'), 15);
+function calculateMaturity(state) {
+  // -----------------------------------------------------
+  // ADS INTEGRATION
+  // Meta + Google + TikTok conectados + primeras señales reales
+  // -----------------------------------------------------
+  let adsIntegration = 0;
+  adsIntegration += points(state.modules.metaAds === 'active', 25);
+  adsIntegration += points(state.modules.googleAds === 'active', 20);
+  adsIntegration += points(state.modules.tiktokAds === 'active', 20);
 
-  const socialListeningBase =
-    points(runtime.modules.socialListening !== 'pending', 20) +
-    points(runtime.metrics.socialMentions > 0, 20);
-
-  const socialListeningGrowth = calcProgressBySteps(runtime.metrics.socialUniqueAuthors, [
-    100, 300, 500, 1000
-  ]);
-
-  const socialListening = Math.min(
-    100,
-    socialListeningBase + Math.round(socialListeningGrowth * 0.6)
+  adsIntegration += points(
+    hasAuditType(['meta_', 'google_', 'tiktok_']),
+    10
   );
 
-  const competitiveRadar =
-    points(runtime.modules.competitiveRadar !== 'pending', 25) +
-    points(runtime.audit.some(a => a.type === 'competitive_radar_received'), 35) +
-    points(runtime.audit.some(a => a.type === 'competitive_radar_error' || a.type === 'competitive_radar_invalid'), 10) +
-    points(runtime.audit.length > 5, 10) +
-    points(runtime.metrics.socialMentions > 0, 20);
+  adsIntegration += progressTowardsTarget(
+    state.metrics.metaLeads,
+    state.goals.firstMetaLeadTarget,
+    10
+  );
 
-  const commandCenter =
-    points(runtime.modules.commandCenter === 'active', 25) +
-    points(runtime.audit.length > 0, 15) +
-    points(runtime.metrics.metaLeads >= 0, 10) +
-    points(runtime.metrics.googleConversions >= 0, 10) +
-    points(runtime.metrics.tiktokEvents >= 0, 10) +
-    points(runtime.modules.socialListening !== 'pending', 15) +
-    points(runtime.modules.competitiveRadar !== 'pending', 15);
+  adsIntegration += progressTowardsTarget(
+    state.metrics.googleConversions,
+    state.goals.firstGoogleConversionTarget,
+    8
+  );
+
+  adsIntegration += progressTowardsTarget(
+    state.metrics.tiktokEvents,
+    state.goals.firstTikTokEventTarget,
+    7
+  );
+
+  // -----------------------------------------------------
+  // BACKEND CXM
+  // Backend vivo, auditoría, módulos registrados, endpoints operativos
+  // -----------------------------------------------------
+  let backendCXM = 0;
+  backendCXM += points(state.modules.commandCenter === 'active', 20);
+  backendCXM += points(state.audit.length > 0, 15);
+  backendCXM += points(state.modules.metaAds === 'active', 15);
+  backendCXM += points(state.modules.googleAds === 'active', 10);
+  backendCXM += points(state.modules.tiktokAds === 'active', 10);
+  backendCXM += points(state.modules.socialListening !== 'pending', 10);
+  backendCXM += points(state.modules.competitiveRadar !== 'pending', 10);
+  backendCXM += points(state.audit.length >= 5, 10);
+
+  // -----------------------------------------------------
+  // CRM AUTOMATION
+  // Zoho + scoring + flujo real de lead
+  // -----------------------------------------------------
+  let crmAutomation = 0;
+  crmAutomation += points(state.modules.zohoCRM === 'active', 35);
+  crmAutomation += points(state.modules.leadScoring === 'active', 25);
+  crmAutomation += points(hasAuditType(['meta_lead_success']), 20);
+  crmAutomation += progressTowardsTarget(
+    state.metrics.metaLeads,
+    state.goals.firstMetaLeadTarget,
+    10
+  );
+  crmAutomation += points(state.metrics.vipLeads > 0, 10);
+
+  // -----------------------------------------------------
+  // SOCIAL LISTENING
+  // Endpoint listo + menciones + autores únicos
+  // -----------------------------------------------------
+  let socialListening = 0;
+  socialListening += points(state.modules.socialListening !== 'pending', 20);
+  socialListening += points(hasAuditType(['social_mention_']), 20);
+  socialListening += progressTowardsTarget(state.metrics.socialMentions, 10, 20);
+  socialListening += progressTowardsTarget(
+    state.metrics.socialUniqueAuthors,
+    state.goals.socialAuthorsTarget,
+    40
+  );
+
+  // -----------------------------------------------------
+  // COMPETITIVE RADAR
+  // Endpoint + keywords registradas + algo de actividad real
+  // -----------------------------------------------------
+  let competitiveRadar = 0;
+  competitiveRadar += points(state.modules.competitiveRadar !== 'pending', 20);
+  competitiveRadar += points(hasAuditType(['competitive_radar_']), 30);
+  competitiveRadar += points(state.audit.length >= 10, 10);
+  competitiveRadar += progressTowardsTarget(state.metrics.socialMentions, 10, 10);
+  competitiveRadar += progressTowardsTarget(state.metrics.socialUniqueAuthors, 100, 30);
+
+  // -----------------------------------------------------
+  // COMMAND CENTER
+  // Vista central, módulos conectados, métricas visibles, auditoría viva
+  // -----------------------------------------------------
+  let commandCenter = 0;
+  commandCenter += points(state.modules.commandCenter === 'active', 25);
+  commandCenter += points(state.audit.length > 0, 15);
+  commandCenter += points(state.modules.metaAds === 'active', 10);
+  commandCenter += points(state.modules.googleAds === 'active', 10);
+  commandCenter += points(state.modules.tiktokAds === 'active', 10);
+  commandCenter += points(state.modules.socialListening !== 'pending', 10);
+  commandCenter += points(state.modules.competitiveRadar !== 'pending', 10);
+  commandCenter += points(state.metrics.metaLeads > 0, 5);
+  commandCenter += points(
+    state.metrics.googleConversions > 0 || state.metrics.tiktokEvents > 0,
+    5
+  );
 
   return {
-    adsIntegration: Math.min(100, adsIntegration),
-    backendCXM: Math.min(100, backendCXM),
-    crmAutomation: Math.min(100, crmAutomation),
-    socialListening: Math.min(100, socialListening),
-    competitiveRadar: Math.min(100, competitiveRadar),
-    commandCenter: Math.min(100, commandCenter)
+    adsIntegration: clamp100(adsIntegration),
+    backendCXM: clamp100(backendCXM),
+    crmAutomation: clamp100(crmAutomation),
+    socialListening: clamp100(socialListening),
+    competitiveRadar: clamp100(competitiveRadar),
+    commandCenter: clamp100(commandCenter)
   };
 }
 
+// =====================================================
+// ROOT + HEALTH + DASHBOARD
+// =====================================================
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -170,12 +236,18 @@ app.get('/api/dashboard/summary', (req, res) => {
   });
 });
 
+// =====================================================
+// REGISTER MODULES
+// =====================================================
 registerMetaRoutes(app, runtime, addAudit);
 registerGoogleRoutes(app, runtime, addAudit);
 registerTikTokRoutes(app, runtime, addAudit);
 registerSocialListeningRoutes(app, runtime, addAudit);
 registerCompetitiveRadarRoutes(app, runtime, addAudit);
 
+// =====================================================
+// FALLBACK
+// =====================================================
 app.use((req, res) => {
   res.status(404).json({
     ok: false,
@@ -184,6 +256,9 @@ app.use((req, res) => {
   });
 });
 
+// =====================================================
+// START
+// =====================================================
 app.listen(PORT, '0.0.0.0', () => {
   console.log('==========================================');
   console.log('ACTIVA UNIFIED CXM PLATFORM');
@@ -193,5 +268,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log('DASHBOARD API: /api/dashboard/summary');
   console.log('==========================================');
 
-  addAudit('system_start', { port: PORT });
+  addAudit('system_start', {
+    port: PORT
+  });
 });
