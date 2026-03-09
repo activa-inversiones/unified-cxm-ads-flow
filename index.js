@@ -30,13 +30,15 @@ app.use(express.static(__dirname));
 // =====================================================
 const runtime = {
   appName: 'ACTIVA Unified CXM',
-  version: '7.6.0',
+  version: '7.7.0',
   startedAt: new Date().toISOString(),
 
   metrics: {
     metaLeads: 0,
     googleConversions: 0,
     tiktokEvents: 0,
+    googleLeadFormLeads: 0,
+    webFormLeads: 0,
     vipLeads: 0,
     socialMentions: 0,
     socialUniqueAuthors: 0
@@ -99,81 +101,68 @@ function progressTowardsTarget(current, target, maxPoints) {
 }
 
 function calculateMaturity(state) {
-  // -----------------------------------------------------
-  // ADS INTEGRATION
-  // -----------------------------------------------------
   let adsIntegration = 0;
-  adsIntegration += points(state.modules.metaAds === 'active', 20);
-  adsIntegration += points(state.modules.googleAds === 'active', 15);
-  adsIntegration += points(state.modules.tiktokAds === 'active', 15);
+  adsIntegration += points(state.modules.metaAds === 'active', 18);
+  adsIntegration += points(state.modules.googleAds === 'active', 12);
+  adsIntegration += points(state.modules.tiktokAds === 'active', 12);
   adsIntegration += points(state.modules.googleLeadForms === 'active', 10);
   adsIntegration += points(state.modules.webForms === 'active', 10);
 
   adsIntegration += progressTowardsTarget(
     state.metrics.metaLeads,
     state.goals.firstMetaLeadTarget,
-    10
+    8
   );
-
   adsIntegration += progressTowardsTarget(
     state.metrics.googleConversions,
     state.goals.firstGoogleConversionTarget,
-    7
+    6
   );
-
   adsIntegration += progressTowardsTarget(
     state.metrics.tiktokEvents,
     state.goals.firstTikTokEventTarget,
-    7
-  );
-
-  adsIntegration += points(
-    hasAuditType([
-      'meta_',
-      'google_conversion_',
-      'google_lead_',
-      'tiktok_event_',
-      'web_form_'
-    ]),
     6
   );
+  adsIntegration += progressTowardsTarget(
+    state.metrics.googleLeadFormLeads,
+    state.goals.firstGoogleLeadTarget,
+    9
+  );
+  adsIntegration += progressTowardsTarget(
+    state.metrics.webFormLeads,
+    state.goals.firstWebLeadTarget,
+    9
+  );
 
-  // -----------------------------------------------------
-  // BACKEND CXM
-  // -----------------------------------------------------
   let backendCXM = 0;
   backendCXM += points(state.modules.commandCenter === 'active', 18);
-  backendCXM += points(state.audit.length > 0, 14);
-  backendCXM += points(state.modules.metaAds === 'active', 10);
+  backendCXM += points(state.audit.length > 0, 12);
+  backendCXM += points(state.modules.metaAds === 'active', 8);
   backendCXM += points(state.modules.googleAds === 'active', 8);
   backendCXM += points(state.modules.tiktokAds === 'active', 8);
   backendCXM += points(state.modules.googleLeadForms === 'active', 8);
   backendCXM += points(state.modules.webForms === 'active', 8);
   backendCXM += points(state.modules.socialListening !== 'pending', 8);
   backendCXM += points(state.modules.competitiveRadar !== 'pending', 8);
-  backendCXM += points(state.audit.length >= 5, 10);
+  backendCXM += points(state.audit.length >= 5, 14);
 
-  // -----------------------------------------------------
-  // CRM AUTOMATION
-  // -----------------------------------------------------
   let crmAutomation = 0;
-  crmAutomation += points(state.modules.zohoCRM === 'active', 30);
+  crmAutomation += points(state.modules.zohoCRM === 'active', 25);
   crmAutomation += points(state.modules.leadScoring === 'active', 20);
-  crmAutomation += points(hasAuditType(['meta_lead_success']), 15);
+  crmAutomation += points(hasAuditType(['crm_router_processed']), 20);
+  crmAutomation += points(hasAuditType(['meta_lead_success']), 10);
   crmAutomation += progressTowardsTarget(
-    state.metrics.metaLeads,
-    state.goals.firstMetaLeadTarget,
-    10
+    state.metrics.googleLeadFormLeads,
+    state.goals.firstGoogleLeadTarget,
+    8
   );
-  crmAutomation += points(state.metrics.vipLeads > 0, 10);
-  crmAutomation += points(
-    hasAuditType(['google_lead_received', 'web_form_lead_received']),
-    15
+  crmAutomation += progressTowardsTarget(
+    state.metrics.webFormLeads,
+    state.goals.firstWebLeadTarget,
+    8
   );
+  crmAutomation += points(state.metrics.vipLeads > 0, 9);
 
-  // -----------------------------------------------------
-  // SOCIAL LISTENING
-  // -----------------------------------------------------
   let socialListening = 0;
   socialListening += points(state.modules.socialListening !== 'pending', 20);
   socialListening += points(hasAuditType(['social_mention_']), 20);
@@ -184,9 +173,6 @@ function calculateMaturity(state) {
     40
   );
 
-  // -----------------------------------------------------
-  // COMPETITIVE RADAR
-  // -----------------------------------------------------
   let competitiveRadar = 0;
   competitiveRadar += points(state.modules.competitiveRadar !== 'pending', 20);
   competitiveRadar += points(hasAuditType(['competitive_radar_']), 30);
@@ -194,23 +180,21 @@ function calculateMaturity(state) {
   competitiveRadar += progressTowardsTarget(state.metrics.socialMentions, 10, 10);
   competitiveRadar += progressTowardsTarget(state.metrics.socialUniqueAuthors, 100, 30);
 
-  // -----------------------------------------------------
-  // COMMAND CENTER
-  // -----------------------------------------------------
   let commandCenter = 0;
-  commandCenter += points(state.modules.commandCenter === 'active', 20);
-  commandCenter += points(state.audit.length > 0, 15);
-  commandCenter += points(state.modules.metaAds === 'active', 8);
-  commandCenter += points(state.modules.googleAds === 'active', 8);
-  commandCenter += points(state.modules.tiktokAds === 'active', 8);
-  commandCenter += points(state.modules.googleLeadForms === 'active', 8);
-  commandCenter += points(state.modules.webForms === 'active', 8);
-  commandCenter += points(state.modules.socialListening !== 'pending', 8);
-  commandCenter += points(state.modules.competitiveRadar !== 'pending', 8);
+  commandCenter += points(state.modules.commandCenter === 'active', 18);
+  commandCenter += points(state.audit.length > 0, 12);
+  commandCenter += points(state.modules.metaAds === 'active', 7);
+  commandCenter += points(state.modules.googleAds === 'active', 7);
+  commandCenter += points(state.modules.tiktokAds === 'active', 7);
+  commandCenter += points(state.modules.googleLeadForms === 'active', 7);
+  commandCenter += points(state.modules.webForms === 'active', 7);
+  commandCenter += points(state.modules.socialListening !== 'pending', 7);
+  commandCenter += points(state.modules.competitiveRadar !== 'pending', 7);
   commandCenter += points(state.metrics.metaLeads > 0, 4);
   commandCenter += points(state.metrics.googleConversions > 0, 4);
   commandCenter += points(state.metrics.tiktokEvents > 0, 4);
-  commandCenter += points(hasAuditType(['google_lead_received', 'web_form_lead_received']), 5);
+  commandCenter += points(state.metrics.googleLeadFormLeads > 0, 5);
+  commandCenter += points(state.metrics.webFormLeads > 0, 5);
 
   return {
     adsIntegration: clamp100(adsIntegration),
