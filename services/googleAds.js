@@ -1,6 +1,8 @@
 export function registerGoogleRoutes(app, runtime, addAudit) {
   app.post('/webhook/google/conversion', async (req, res) => {
     try {
+      console.log('📩 [GOOGLE RAW BODY]:', JSON.stringify(req.body, null, 2));
+
       const {
         gclid,
         conversion_time,
@@ -10,7 +12,8 @@ export function registerGoogleRoutes(app, runtime, addAudit) {
         lead_name,
         lead_email,
         lead_phone,
-        source
+        source,
+        test_mode
       } = req.body || {};
 
       if (!gclid || !conversion_time || typeof value === 'undefined') {
@@ -36,10 +39,11 @@ export function registerGoogleRoutes(app, runtime, addAudit) {
         lead_name: lead_name || '',
         lead_email: lead_email || '',
         lead_phone: lead_phone || '',
-        source: source || 'Google Ads'
+        source: source || 'Google Ads',
+        test_mode: Boolean(test_mode)
       });
 
-      console.log('✅ [GOOGLE] Conversión recibida');
+      console.log('✅ [GOOGLE] Conversión registrada');
       console.log(
         JSON.stringify(
           {
@@ -47,7 +51,8 @@ export function registerGoogleRoutes(app, runtime, addAudit) {
             conversion_time,
             value,
             currency_code: currency_code || 'CLP',
-            conversion_name: conversion_name || 'Lead Conversion'
+            conversion_name: conversion_name || 'Lead Conversion',
+            test_mode: Boolean(test_mode)
           },
           null,
           2
@@ -57,6 +62,7 @@ export function registerGoogleRoutes(app, runtime, addAudit) {
       return res.status(200).json({
         ok: true,
         staged: true,
+        googleConversions: runtime.metrics.googleConversions,
         message: 'Conversión recibida y registrada en auditoría'
       });
     } catch (error) {
