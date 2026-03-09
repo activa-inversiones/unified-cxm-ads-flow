@@ -5,6 +5,8 @@ import { fileURLToPath } from 'url';
 import { registerMetaRoutes } from './services/metaAds.js';
 import { registerGoogleRoutes } from './services/googleAds.js';
 import { registerTikTokRoutes } from './services/tiktokAds.js';
+import { registerGoogleLeadFormRoutes } from './services/googleLeadForms.js';
+import { registerWebFormRoutes } from './services/webForms.js';
 import { registerSocialListeningRoutes } from './intelligence/socialListening.js';
 import { registerCompetitiveRadarRoutes } from './intelligence/competitiveRadar.js';
 
@@ -28,7 +30,7 @@ app.use(express.static(__dirname));
 // =====================================================
 const runtime = {
   appName: 'ACTIVA Unified CXM',
-  version: '7.5.0',
+  version: '7.6.0',
   startedAt: new Date().toISOString(),
 
   metrics: {
@@ -44,6 +46,8 @@ const runtime = {
     metaAds: 'active',
     googleAds: 'active',
     tiktokAds: 'active',
+    googleLeadForms: 'active',
+    webForms: 'active',
     zohoCRM: 'active',
     leadScoring: 'active',
     socialListening: 'partial',
@@ -55,7 +59,9 @@ const runtime = {
     socialAuthorsTarget: 1000,
     firstMetaLeadTarget: 1,
     firstGoogleConversionTarget: 1,
-    firstTikTokEventTarget: 1
+    firstTikTokEventTarget: 1,
+    firstGoogleLeadTarget: 1,
+    firstWebLeadTarget: 1
   },
 
   audit: [],
@@ -95,17 +101,13 @@ function progressTowardsTarget(current, target, maxPoints) {
 function calculateMaturity(state) {
   // -----------------------------------------------------
   // ADS INTEGRATION
-  // Meta + Google + TikTok conectados + primeras señales reales
   // -----------------------------------------------------
   let adsIntegration = 0;
-  adsIntegration += points(state.modules.metaAds === 'active', 25);
-  adsIntegration += points(state.modules.googleAds === 'active', 20);
-  adsIntegration += points(state.modules.tiktokAds === 'active', 20);
-
-  adsIntegration += points(
-    hasAuditType(['meta_', 'google_', 'tiktok_']),
-    10
-  );
+  adsIntegration += points(state.modules.metaAds === 'active', 20);
+  adsIntegration += points(state.modules.googleAds === 'active', 15);
+  adsIntegration += points(state.modules.tiktokAds === 'active', 15);
+  adsIntegration += points(state.modules.googleLeadForms === 'active', 10);
+  adsIntegration += points(state.modules.webForms === 'active', 10);
 
   adsIntegration += progressTowardsTarget(
     state.metrics.metaLeads,
@@ -116,7 +118,7 @@ function calculateMaturity(state) {
   adsIntegration += progressTowardsTarget(
     state.metrics.googleConversions,
     state.goals.firstGoogleConversionTarget,
-    8
+    7
   );
 
   adsIntegration += progressTowardsTarget(
@@ -125,38 +127,52 @@ function calculateMaturity(state) {
     7
   );
 
+  adsIntegration += points(
+    hasAuditType([
+      'meta_',
+      'google_conversion_',
+      'google_lead_',
+      'tiktok_event_',
+      'web_form_'
+    ]),
+    6
+  );
+
   // -----------------------------------------------------
   // BACKEND CXM
-  // Backend vivo, auditoría, módulos registrados, endpoints operativos
   // -----------------------------------------------------
   let backendCXM = 0;
-  backendCXM += points(state.modules.commandCenter === 'active', 20);
-  backendCXM += points(state.audit.length > 0, 15);
-  backendCXM += points(state.modules.metaAds === 'active', 15);
-  backendCXM += points(state.modules.googleAds === 'active', 10);
-  backendCXM += points(state.modules.tiktokAds === 'active', 10);
-  backendCXM += points(state.modules.socialListening !== 'pending', 10);
-  backendCXM += points(state.modules.competitiveRadar !== 'pending', 10);
+  backendCXM += points(state.modules.commandCenter === 'active', 18);
+  backendCXM += points(state.audit.length > 0, 14);
+  backendCXM += points(state.modules.metaAds === 'active', 10);
+  backendCXM += points(state.modules.googleAds === 'active', 8);
+  backendCXM += points(state.modules.tiktokAds === 'active', 8);
+  backendCXM += points(state.modules.googleLeadForms === 'active', 8);
+  backendCXM += points(state.modules.webForms === 'active', 8);
+  backendCXM += points(state.modules.socialListening !== 'pending', 8);
+  backendCXM += points(state.modules.competitiveRadar !== 'pending', 8);
   backendCXM += points(state.audit.length >= 5, 10);
 
   // -----------------------------------------------------
   // CRM AUTOMATION
-  // Zoho + scoring + flujo real de lead
   // -----------------------------------------------------
   let crmAutomation = 0;
-  crmAutomation += points(state.modules.zohoCRM === 'active', 35);
-  crmAutomation += points(state.modules.leadScoring === 'active', 25);
-  crmAutomation += points(hasAuditType(['meta_lead_success']), 20);
+  crmAutomation += points(state.modules.zohoCRM === 'active', 30);
+  crmAutomation += points(state.modules.leadScoring === 'active', 20);
+  crmAutomation += points(hasAuditType(['meta_lead_success']), 15);
   crmAutomation += progressTowardsTarget(
     state.metrics.metaLeads,
     state.goals.firstMetaLeadTarget,
     10
   );
   crmAutomation += points(state.metrics.vipLeads > 0, 10);
+  crmAutomation += points(
+    hasAuditType(['google_lead_received', 'web_form_lead_received']),
+    15
+  );
 
   // -----------------------------------------------------
   // SOCIAL LISTENING
-  // Endpoint listo + menciones + autores únicos
   // -----------------------------------------------------
   let socialListening = 0;
   socialListening += points(state.modules.socialListening !== 'pending', 20);
@@ -170,7 +186,6 @@ function calculateMaturity(state) {
 
   // -----------------------------------------------------
   // COMPETITIVE RADAR
-  // Endpoint + keywords registradas + algo de actividad real
   // -----------------------------------------------------
   let competitiveRadar = 0;
   competitiveRadar += points(state.modules.competitiveRadar !== 'pending', 20);
@@ -181,21 +196,21 @@ function calculateMaturity(state) {
 
   // -----------------------------------------------------
   // COMMAND CENTER
-  // Vista central, módulos conectados, métricas visibles, auditoría viva
   // -----------------------------------------------------
   let commandCenter = 0;
-  commandCenter += points(state.modules.commandCenter === 'active', 25);
+  commandCenter += points(state.modules.commandCenter === 'active', 20);
   commandCenter += points(state.audit.length > 0, 15);
-  commandCenter += points(state.modules.metaAds === 'active', 10);
-  commandCenter += points(state.modules.googleAds === 'active', 10);
-  commandCenter += points(state.modules.tiktokAds === 'active', 10);
-  commandCenter += points(state.modules.socialListening !== 'pending', 10);
-  commandCenter += points(state.modules.competitiveRadar !== 'pending', 10);
-  commandCenter += points(state.metrics.metaLeads > 0, 5);
-  commandCenter += points(
-    state.metrics.googleConversions > 0 || state.metrics.tiktokEvents > 0,
-    5
-  );
+  commandCenter += points(state.modules.metaAds === 'active', 8);
+  commandCenter += points(state.modules.googleAds === 'active', 8);
+  commandCenter += points(state.modules.tiktokAds === 'active', 8);
+  commandCenter += points(state.modules.googleLeadForms === 'active', 8);
+  commandCenter += points(state.modules.webForms === 'active', 8);
+  commandCenter += points(state.modules.socialListening !== 'pending', 8);
+  commandCenter += points(state.modules.competitiveRadar !== 'pending', 8);
+  commandCenter += points(state.metrics.metaLeads > 0, 4);
+  commandCenter += points(state.metrics.googleConversions > 0, 4);
+  commandCenter += points(state.metrics.tiktokEvents > 0, 4);
+  commandCenter += points(hasAuditType(['google_lead_received', 'web_form_lead_received']), 5);
 
   return {
     adsIntegration: clamp100(adsIntegration),
@@ -242,6 +257,8 @@ app.get('/api/dashboard/summary', (req, res) => {
 registerMetaRoutes(app, runtime, addAudit);
 registerGoogleRoutes(app, runtime, addAudit);
 registerTikTokRoutes(app, runtime, addAudit);
+registerGoogleLeadFormRoutes(app, runtime, addAudit);
+registerWebFormRoutes(app, runtime, addAudit);
 registerSocialListeningRoutes(app, runtime, addAudit);
 registerCompetitiveRadarRoutes(app, runtime, addAudit);
 
