@@ -1,3 +1,6 @@
+import axios from 'axios';
+import { processInboundLead } from './crmRouter.js';
+
 export function registerGoogleLeadFormRoutes(app, runtime, addAudit) {
   app.post('/webhook/google/lead', async (req, res) => {
     try {
@@ -51,18 +54,29 @@ export function registerGoogleLeadFormRoutes(app, runtime, addAudit) {
         test_mode: Boolean(test_mode)
       };
 
-      runtime.metrics.googleConversions += 1;
+      runtime.metrics.googleLeadFormLeads += 1;
 
       addAudit('google_lead_received', normalizedLead);
 
-      console.log('✅ [GOOGLE LEAD] Lead recibido');
-      console.log(JSON.stringify(normalizedLead, null, 2));
+      const result = await processInboundLead(
+        axios,
+        runtime,
+        addAudit,
+        normalizedLead,
+        { channel: 'googleLeadForms', sendToCRM: true }
+      );
+
+      console.log('✅ [GOOGLE LEAD] Lead procesado');
+      console.log(JSON.stringify(result, null, 2));
 
       return res.status(200).json({
         ok: true,
         received: true,
-        message: 'Lead de Google registrado en auditoría',
-        dedupe_key_hint: `${normalizedLead.source}|${normalizedLead.email}|${normalizedLead.phone}`
+        message: 'Lead de Google registrado y enrutado',
+        action: result.action,
+        score: result.score,
+        zoho: result.zoho,
+        dedupeKeys: result.dedupeKeys
       });
     } catch (error) {
       console.error('❌ [GOOGLE LEAD ERROR]:', error.message);
