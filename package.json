@@ -1,15 +1,15 @@
 {
   "name": "unified-cxm-ads-flow",
-  "version": "1.4.3",
-  "description": "Ads Intelligence Hub - Mode Ferrari v4.3",
+  "version": "7.0.0",
+  "description": "Unified CXM Platform - Meta Ads, Google Ads, TikTok Ads, Zoho CRM, AI Scoring, Command Center",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "node index.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "axios": "^1.6.0",
-    "firebase": "^11.6.1"
+    "axios": "^1.7.9",
+    "express": "^4.21.2"
   }
 }
