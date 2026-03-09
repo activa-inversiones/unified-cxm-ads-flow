@@ -1,7 +1,7 @@
 {
   "name": "unified-cxm-ads-flow",
-  "version": "7.0.0",
-  "description": "Unified CXM Platform - Meta Ads, Google Ads, TikTok Ads, Zoho CRM, AI Scoring, Command Center",
+  "version": "7.1.0",
+  "description": "ACTIVA Unified CXM Platform - Ferrari Core",
   "main": "index.js",
   "type": "module",
   "scripts": {
