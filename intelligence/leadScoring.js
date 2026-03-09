@@ -1,9 +1,5 @@
 import { askOpenAIJson } from '../services/openai.js';
-
-function includesText(value, options = []) {
-  const text = String(value || '').toLowerCase();
-  return options.some((option) => text.includes(String(option).toLowerCase()));
-}
+import { includesText } from '../utils/helpers.js';
 
 export function normalizeLeadInfoFromMeta(metaLeadData) {
   const fieldData = metaLeadData.field_data || [];
@@ -47,9 +43,7 @@ export function scoreLeadByRules(leadInfo) {
   let score = 5;
   const reasons = [];
 
-  if (
-    includesText(leadInfo.windows_qty, ['10 a 30', 'más de 30', 'mas de 30'])
-  ) {
+  if (includesText(leadInfo.windows_qty, ['10 a 30', 'más de 30', 'mas de 30'])) {
     score += 2;
     reasons.push('alto volumen de ventanas');
   }
