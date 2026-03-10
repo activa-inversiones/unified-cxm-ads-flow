@@ -1,11 +1,13 @@
 // services/stateStore.js
-// ESM - Node 18+
-// Persistencia local JSON con API lista para enchufar después a Firestore si quieres.
+// Persistencia local JSON para ACTIVA Unified CXM
+// Node 18+ | ESM
 
 import fs from "fs/promises";
 import path from "path";
 
 const DEFAULT_STATE = {
+  app: "ACTIVA Unified CXM",
+  version: "7.7.0",
   metrics: {
     metaLeads: 0,
     googleConversions: 0,
@@ -49,51 +51,42 @@ const DEFAULT_STATE = {
   leads: [],
   socialAuthors: {},
   radarKeywords: {},
-  lastUpdatedAt: null,
-  version: "1.0.0",
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
 };
 
-function deepClone(obj) {
+function clone(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
-function mergeDeep(target, source) {
-  const output = { ...target };
-  if (!source || typeof source !== "object") return output;
-
-  for (const key of Object.keys(source)) {
-    const sourceValue = source[key];
-    const targetValue = output[key];
-
-    if (
-      sourceValue &&
-      typeof sourceValue === "object" &&
-      !Array.isArray(sourceValue) &&
-      targetValue &&
-      typeof targetValue === "object" &&
-      !Array.isArray(targetValue)
-    ) {
-      output[key] = mergeDeep(targetValue, sourceValue);
-    } else {
-      output[key] = sourceValue;
-    }
-  }
-
-  return output;
+function isPlainObject(v) {
+  return v && typeof v === "object" && !Array.isArray(v);
 }
 
-export class StateStore {
-  constructor(options = {}) {
+function deepMerge(base, extra) {
+  const out = { ...base };
+  for (const key of Object.keys(extra || {})) {
+    const baseVal = out[key];
+    const extraVal = extra[key];
+    if (isPlainObject(baseVal) && isPlainObject(extraVal)) {
+      out[key] = deepMerge(baseVal, extraVal);
+    } else {
+      out[key] = extraVal;
+    }
+  }
+  return out;
+}
+
+class StateStore {
+  constructor() {
     this.filePath =
-      options.filePath ||
       process.env.STATE_FILE_PATH ||
       path.join(process.cwd(), "data", "runtime-state.json");
 
     this.maxAuditEntries = Number(process.env.MAX_AUDIT_ENTRIES || 500);
     this.maxLeadEntries = Number(process.env.MAX_LEAD_ENTRIES || 1000);
 
-    this.state = deepClone(DEFAULT_STATE);
-
+    this.state = clone(DEFAULT_STATE);
     this._saveTimer = null;
     this._isSaving = false;
     this._pendingSave = false;
@@ -105,8 +98,8 @@ export class StateStore {
     try {
       const raw = await fs.readFile(this.filePath, "utf8");
       const parsed = JSON.parse(raw);
-      this.state = mergeDeep(deepClone(DEFAULT_STATE), parsed);
-      this.state.lastUpdatedAt = new Date().toISOString();
+      this.state = deepMerge(clone(DEFAULT_STATE), parsed);
+      this.state.updatedAt = new Date().toISOString();
       console.log(`[stateStore] Estado restaurado desde ${this.filePath}`);
     } catch (error) {
       if (error.code === "ENOENT") {
@@ -117,119 +110,97 @@ export class StateStore {
         throw error;
       }
     }
-
     return this.getState();
   }
 
   getState() {
-    return deepClone(this.state);
+    return clone(this.state);
+  }
+
+  getDashboardSummary() {
+    return {
+      app: this.state.app,
+      version: this.state.version,
+      maturity: this.state.maturity,
+      metrics: this.state.metrics,
+      modules: this.state.modules,
+      goals: this.state.goals,
+      audit: this.state.audit.slice(0, 20),
+      updatedAt: this.state.updatedAt,
+      counts: {
+        audit: this.state.audit.length,
+        leads: this.state.leads.length,
+        dedupeKeys: Object.keys(this.state.dedupeRegistry).length,
+        socialAuthors: Object.keys(this.state.socialAuthors).length,
+        radarKeywords: Object.keys(this.state.radarKeywords).length,
+      },
+    };
   }
 
   getMetrics() {
-    return deepClone(this.state.metrics);
-  }
-
-  getAudit() {
-    return deepClone(this.state.audit);
-  }
-
-  getDedupeRegistry() {
-    return deepClone(this.state.dedupeRegistry);
-  }
-
-  getLeads() {
-    return deepClone(this.state.leads);
-  }
-
-  getSocialAuthors() {
-    return deepClone(this.state.socialAuthors);
-  }
-
-  getRadarKeywords() {
-    return deepClone(this.state.radarKeywords);
-  }
-
-  async replaceState(nextState = {}) {
-    this.state = mergeDeep(deepClone(DEFAULT_STATE), nextState);
-    this.state.lastUpdatedAt = new Date().toISOString();
-    await this.saveNow();
-    return this.getState();
-  }
-
-  async patchState(partial = {}) {
-    this.state = mergeDeep(this.state, partial);
-    this.state.lastUpdatedAt = new Date().toISOString();
-    this.scheduleSave();
-    return this.getState();
+    return clone(this.state.metrics);
   }
 
   incrementMetric(metricName, value = 1) {
     if (typeof this.state.metrics[metricName] !== "number") {
       this.state.metrics[metricName] = 0;
     }
-
-    this.state.metrics[metricName] += value;
-    this.state.lastUpdatedAt = new Date().toISOString();
+    this.state.metrics[metricName] += Number(value || 0);
+    this.touch();
     this.scheduleSave();
-
     return this.state.metrics[metricName];
   }
 
   setMetric(metricName, value) {
     this.state.metrics[metricName] = Number(value || 0);
-    this.state.lastUpdatedAt = new Date().toISOString();
+    this.touch();
     this.scheduleSave();
-
     return this.state.metrics[metricName];
   }
 
   addAudit(entry = {}) {
-    const safeEntry = {
+    const item = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
       timestamp: new Date().toISOString(),
       ...entry,
     };
 
-    this.state.audit.unshift(safeEntry);
-
+    this.state.audit.unshift(item);
     if (this.state.audit.length > this.maxAuditEntries) {
       this.state.audit = this.state.audit.slice(0, this.maxAuditEntries);
     }
 
-    this.state.lastUpdatedAt = new Date().toISOString();
+    this.touch();
     this.scheduleSave();
-
-    return safeEntry;
+    return item;
   }
 
   addLead(lead = {}) {
-    const safeLead = {
+    const item = {
       id: lead.id || `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
       receivedAt: new Date().toISOString(),
       ...lead,
     };
 
-    this.state.leads.unshift(safeLead);
-
+    this.state.leads.unshift(item);
     if (this.state.leads.length > this.maxLeadEntries) {
       this.state.leads = this.state.leads.slice(0, this.maxLeadEntries);
     }
 
-    this.state.lastUpdatedAt = new Date().toISOString();
+    this.touch();
     this.scheduleSave();
+    return item;
+  }
 
-    return safeLead;
+  hasDedupeKey(key) {
+    return Boolean(this.state.dedupeRegistry[key]);
   }
 
   setDedupeKey(key, value = true) {
     if (!key) return;
     this.state.dedupeRegistry[key] = value;
-    this.state.lastUpdatedAt = new Date().toISOString();
+    this.touch();
     this.scheduleSave();
-  }
-
-  hasDedupeKey(key) {
-    return Boolean(this.state.dedupeRegistry[key]);
   }
 
   registerSocialAuthor(authorKey) {
@@ -245,9 +216,9 @@ export class StateStore {
 
     this.state.socialAuthors[authorKey].mentions += 1;
     this.state.socialAuthors[authorKey].lastSeenAt = new Date().toISOString();
-    this.incrementMetric("socialMentions", 1);
 
-    this.state.lastUpdatedAt = new Date().toISOString();
+    this.incrementMetric("socialMentions", 1);
+    this.touch();
     this.scheduleSave();
 
     return this.state.socialAuthors[authorKey].mentions;
@@ -259,6 +230,7 @@ export class StateStore {
     if (!this.state.radarKeywords[keyword]) {
       this.state.radarKeywords[keyword] = {
         firstSeenAt: new Date().toISOString(),
+        lastSeenAt: new Date().toISOString(),
         snapshots: [],
       };
     }
@@ -268,38 +240,28 @@ export class StateStore {
       ...payload,
     });
 
-    this.state.radarKeywords[keyword].lastSeenAt = new Date().toISOString();
-
     if (this.state.radarKeywords[keyword].snapshots.length > 50) {
       this.state.radarKeywords[keyword].snapshots =
         this.state.radarKeywords[keyword].snapshots.slice(0, 50);
     }
 
-    this.state.lastUpdatedAt = new Date().toISOString();
+    this.state.radarKeywords[keyword].lastSeenAt = new Date().toISOString();
+    this.touch();
     this.scheduleSave();
   }
 
-  getDashboardSummary() {
-    return {
-      app: "ACTIVA Unified CXM",
-      version: this.state.version,
-      maturity: this.state.maturity,
-      metrics: this.state.metrics,
-      modules: this.state.modules,
-      goals: this.state.goals,
-      audit: this.state.audit.slice(0, 20),
-      updatedAt: this.state.lastUpdatedAt,
-      counts: {
-        audit: this.state.audit.length,
-        leads: this.state.leads.length,
-        dedupeKeys: Object.keys(this.state.dedupeRegistry).length,
-        socialAuthors: Object.keys(this.state.socialAuthors).length,
-        radarKeywords: Object.keys(this.state.radarKeywords).length,
-      },
-    };
+  async replaceState(nextState = {}) {
+    this.state = deepMerge(clone(DEFAULT_STATE), nextState);
+    this.touch();
+    await this.saveNow();
+    return this.getState();
   }
 
-  scheduleSave(delayMs = 800) {
+  touch() {
+    this.state.updatedAt = new Date().toISOString();
+  }
+
+  scheduleSave(delayMs = 700) {
     if (this._saveTimer) clearTimeout(this._saveTimer);
 
     this._saveTimer = setTimeout(() => {
@@ -318,8 +280,7 @@ export class StateStore {
     this._isSaving = true;
 
     try {
-      this.state.lastUpdatedAt = new Date().toISOString();
-
+      this.touch();
       await fs.mkdir(path.dirname(this.filePath), { recursive: true });
       await fs.writeFile(
         this.filePath,
@@ -337,5 +298,7 @@ export class StateStore {
   }
 }
 
-export const stateStore = new StateStore();
+const stateStore = new StateStore();
+
 export default stateStore;
+export { StateStore };
