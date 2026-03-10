@@ -3,172 +3,149 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ACTIVA Unified CXM</title>
+  <title>ACTIVA Unified CXM | Command Center</title>
   <meta
     name="description"
-    content="Panel operativo de ACTIVA Unified CXM para monitoreo de métricas, madurez, módulos y auditoría."
+    content="Centro de mando operativo para monitoreo de KPIs, salud del sistema, metas, alertas y auditoría de ACTIVA Unified CXM."
   />
   <style>
     :root {
-      --bg: #0b1020;
-      --bg-soft: #121933;
-      --card: #151d3a;
-      --card-2: #1b2549;
-      --text: #eef3ff;
-      --muted: #a8b4d1;
+      --bg: #07111f;
+      --bg-2: #0b1728;
+      --panel: #0f1d33;
+      --panel-2: #142742;
+      --panel-3: #0d1a2e;
+      --text: #eff5ff;
+      --muted: #9db0cb;
       --line: rgba(255,255,255,0.08);
-      --ok: #29c36a;
-      --warn: #f0b429;
-      --bad: #ef5350;
-      --accent: #5aa8ff;
-      --accent-2: #7a5cff;
-      --shadow: 0 10px 30px rgba(0,0,0,0.25);
+      --accent: #4da3ff;
+      --accent-2: #6c63ff;
+      --ok: #20c774;
+      --warn: #f5b83d;
+      --bad: #ff5d5d;
+      --info: #5fb2ff;
+      --shadow: 0 16px 40px rgba(0,0,0,0.28);
       --radius: 18px;
+      --radius-sm: 12px;
+      --font: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
       padding: 0;
-      background:
-        radial-gradient(circle at top left, rgba(90,168,255,0.12), transparent 30%),
-        radial-gradient(circle at top right, rgba(122,92,255,0.12), transparent 28%),
-        var(--bg);
-      color: var(--text);
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       min-height: 100%;
+      background:
+        radial-gradient(circle at top left, rgba(77,163,255,0.14), transparent 28%),
+        radial-gradient(circle at top right, rgba(108,99,255,0.12), transparent 24%),
+        linear-gradient(180deg, var(--bg), var(--bg-2));
+      color: var(--text);
+      font-family: var(--font);
     }
 
     body {
-      padding: 24px;
+      padding: 20px;
     }
 
-    .shell {
-      max-width: 1440px;
+    .app-shell {
+      max-width: 1600px;
       margin: 0 auto;
     }
 
     .topbar {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-    }
-
-    .brand {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .brand h1 {
-      margin: 0;
-      font-size: 28px;
-      line-height: 1.1;
-      letter-spacing: -0.02em;
-    }
-
-    .brand p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    button {
-      border: 1px solid var(--line);
-      background: linear-gradient(180deg, var(--card-2), var(--card));
-      color: var(--text);
-      padding: 10px 14px;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: transform .15s ease, border-color .15s ease, opacity .15s ease;
-      box-shadow: var(--shadow);
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      border-color: rgba(255,255,255,0.18);
-    }
-
-    button.secondary {
-      background: transparent;
-      box-shadow: none;
-    }
-
-    .statusbar {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 24px;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 20px;
     }
 
-    .card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)), var(--card);
+    .hero, .ops-box, .panel, .metric-card, .alert-card, .timeline-item {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)),
+        var(--panel);
       border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
     }
 
-    .stat {
-      padding: 18px 18px 16px;
+    .hero {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
 
-    .stat-label {
+    .hero-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .title-group h1 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    .title-group p {
+      margin: 8px 0 0;
       color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 8px;
+      font-size: 14px;
+      line-height: 1.45;
+      max-width: 820px;
     }
 
-    .stat-value {
-      font-size: 26px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1.3fr 1fr;
-      gap: 18px;
-      align-items: start;
+    button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, var(--panel-2), var(--panel-3));
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: .18s ease;
     }
 
-    .stack {
-      display: grid;
-      gap: 18px;
+    button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,0.16);
     }
 
-    .panel {
-      padding: 18px;
+    .ghost {
+      background: transparent;
+      box-shadow: none;
     }
 
-    .panel h2 {
-      margin: 0 0 14px;
-      font-size: 18px;
-      letter-spacing: -0.01em;
+    .hero-status {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
     }
 
-    .muted {
-      color: var(--muted);
-    }
-
-    .health {
+    .pill {
       display: inline-flex;
       align-items: center;
       gap: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--line);
       font-size: 13px;
       color: var(--muted);
-      margin-top: 6px;
     }
 
     .dot {
@@ -177,51 +154,189 @@
       border-radius: 50%;
       display: inline-block;
       background: var(--warn);
-      box-shadow: 0 0 0 4px rgba(240,180,41,0.12);
+      box-shadow: 0 0 0 4px rgba(245,184,61,0.12);
     }
 
     .dot.ok {
       background: var(--ok);
-      box-shadow: 0 0 0 4px rgba(41,195,106,0.12);
+      box-shadow: 0 0 0 4px rgba(32,199,116,0.12);
     }
 
     .dot.bad {
       background: var(--bad);
-      box-shadow: 0 0 0 4px rgba(239,83,80,0.12);
+      box-shadow: 0 0 0 4px rgba(255,93,93,0.12);
+    }
+
+    .hero-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric-card {
+      padding: 16px;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+
+    .metric-sub {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .ops-box {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .ops-box h2, .panel h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    .kv-list {
+      display: grid;
+      gap: 10px;
     }
 
     .kv {
       display: grid;
-      grid-template-columns: 180px 1fr;
-      gap: 10px 14px;
-      align-items: center;
-    }
-
-    .kv + .kv {
-      margin-top: 10px;
+      grid-template-columns: 165px 1fr;
+      gap: 12px;
+      align-items: start;
+      font-size: 14px;
     }
 
     .kv .k {
       color: var(--muted);
-      font-size: 13px;
     }
 
     .kv .v {
-      font-size: 14px;
       word-break: break-word;
     }
 
-    .meter-list {
+    .layout {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 18px;
+    }
+
+    .left-stack, .right-stack {
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .panel {
+      padding: 18px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .panel-note {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .channel-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .channel-card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .channel-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .channel-title {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .badge {
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      border: 1px solid var(--line);
+    }
+
+    .badge.ok { color: var(--ok); }
+    .badge.warn { color: var(--warn); }
+    .badge.bad { color: var(--bad); }
+    .badge.info { color: var(--info); }
+
+    .mini-kpi {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .mini {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .mini .l {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .mini .v {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .bar-list {
       display: grid;
       gap: 12px;
     }
 
-    .meter-row {
+    .bar-row {
       display: grid;
       gap: 8px;
     }
 
-    .meter-head {
+    .bar-head {
       display: flex;
       justify-content: space-between;
       gap: 12px;
@@ -238,59 +353,86 @@
     .bar > span {
       display: block;
       height: 100%;
+      width: 0%;
       border-radius: 999px;
       background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      width: 0%;
       transition: width .35s ease;
     }
 
-    .pill-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      border-radius: 999px;
-      padding: 9px 12px;
-      font-size: 13px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid var(--line);
-    }
-
-    .pill .state {
-      font-weight: 700;
-      text-transform: uppercase;
-      font-size: 11px;
-      letter-spacing: 0.04em;
-    }
-
-    .state.active { color: var(--ok); }
-    .state.partial { color: var(--warn); }
-    .state.pending { color: var(--bad); }
-
-    .audit-wrap {
-      max-height: 640px;
-      overflow: auto;
-      padding-right: 4px;
-    }
-
-    .audit-list {
+    .goal-grid {
       display: grid;
       gap: 12px;
     }
 
-    .audit-item {
+    .goal-card {
       border: 1px solid var(--line);
       border-radius: 14px;
       padding: 14px;
       background: rgba(255,255,255,0.03);
     }
 
-    .audit-top {
+    .goal-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .goal-name {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .goal-values {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .module-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .module-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      font-size: 13px;
+    }
+
+    .module-state {
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .module-state.active { color: var(--ok); }
+    .module-state.partial { color: var(--warn); }
+    .module-state.pending { color: var(--bad); }
+
+    .alerts-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .alert-card {
+      padding: 14px;
+      border-left: 4px solid transparent;
+    }
+
+    .alert-card.ok { border-left-color: var(--ok); }
+    .alert-card.warn { border-left-color: var(--warn); }
+    .alert-card.bad { border-left-color: var(--bad); }
+    .alert-card.info { border-left-color: var(--info); }
+
+    .alert-top {
       display: flex;
       justify-content: space-between;
       gap: 12px;
@@ -299,89 +441,128 @@
       margin-bottom: 8px;
     }
 
-    .audit-type {
-      font-weight: 700;
+    .alert-title {
+      font-weight: 800;
       font-size: 14px;
     }
 
-    .audit-time {
+    .alert-body {
       color: var(--muted);
-      font-size: 12px;
+      font-size: 13px;
+      line-height: 1.5;
     }
 
-    .audit-meta {
+    .timeline {
+      display: grid;
+      gap: 12px;
+      max-height: 720px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .timeline-item {
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .timeline-head {
       display: flex;
-      gap: 8px;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
       flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .timeline-type {
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .timeline-time {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .timeline-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
       margin-bottom: 8px;
     }
 
     .tag {
       font-size: 11px;
-      padding: 5px 8px;
+      color: var(--muted);
+      padding: 4px 8px;
       border-radius: 999px;
       border: 1px solid var(--line);
       background: rgba(255,255,255,0.04);
-      color: var(--muted);
     }
 
     pre {
       margin: 0;
       white-space: pre-wrap;
       word-break: break-word;
+      overflow-x: auto;
       font-size: 12px;
       line-height: 1.45;
-      color: #dfe7ff;
-      background: rgba(0,0,0,0.2);
-      border-radius: 12px;
       padding: 12px;
+      border-radius: 12px;
+      background: rgba(0,0,0,0.22);
       border: 1px solid rgba(255,255,255,0.04);
-      overflow-x: auto;
+      color: #dbe8ff;
     }
 
     .empty {
       color: var(--muted);
       font-size: 14px;
-      padding: 18px 0;
+      padding: 12px 0;
     }
 
     .footer {
-      margin-top: 20px;
+      margin-top: 18px;
+      text-align: center;
       color: var(--muted);
       font-size: 12px;
-      text-align: center;
-    }
-
-    .loading {
-      opacity: 0.7;
     }
 
     .error-banner {
+      display: none;
       margin-bottom: 18px;
       padding: 14px 16px;
-      border: 1px solid rgba(239,83,80,0.25);
-      background: rgba(239,83,80,0.08);
-      color: #ffd6d6;
       border-radius: 14px;
-      display: none;
+      border: 1px solid rgba(255,93,93,0.2);
+      background: rgba(255,93,93,0.08);
+      color: #ffd5d5;
     }
 
-    @media (max-width: 1120px) {
-      .grid {
+    .loading {
+      opacity: .8;
+    }
+
+    @media (max-width: 1280px) {
+      .topbar, .layout {
         grid-template-columns: 1fr;
       }
+    }
 
-      .statusbar {
+    @media (max-width: 980px) {
+      .hero-summary,
+      .channel-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
-    @media (max-width: 680px) {
+    @media (max-width: 720px) {
       body {
-        padding: 16px;
+        padding: 14px;
       }
 
-      .statusbar {
+      .hero-summary,
+      .channel-grid,
+      .mini-kpi {
         grid-template-columns: 1fr;
       }
 
@@ -389,199 +570,339 @@
         grid-template-columns: 1fr;
       }
 
-      .brand h1 {
-        font-size: 22px;
+      .title-group h1 {
+        font-size: 24px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <div class="topbar">
-      <div class="brand">
-        <h1>ACTIVA Unified CXM</h1>
-        <p>Panel operativo para monitoreo, auditoría y madurez de la plataforma</p>
-        <div class="health">
-          <span id="healthDot" class="dot"></span>
-          <span id="healthText">Esperando estado del sistema...</span>
+  <div class="app-shell">
+    <div id="errorBanner" class="error-banner"></div>
+
+    <section class="topbar">
+      <div class="hero">
+        <div class="hero-head">
+          <div class="title-group">
+            <h1>ACTIVA Unified CXM · Command Center</h1>
+            <p>
+              Centro de mando para monitoreo en tiempo real, seguimiento operativo,
+              control de madurez, auditoría y decisiones ejecutivas sobre leads, canales,
+              automatización y salud de la plataforma.
+            </p>
+          </div>
+
+          <div class="toolbar">
+            <button id="refreshBtn">Actualizar ahora</button>
+            <button id="autoRefreshBtn" class="ghost">Auto refresh: ON</button>
+          </div>
+        </div>
+
+        <div class="hero-status">
+          <div class="pill">
+            <span id="systemDot" class="dot"></span>
+            <span id="systemStatusText">Esperando estado del sistema...</span>
+          </div>
+          <div class="pill">Versión: <strong id="appVersion">-</strong></div>
+          <div class="pill">Última actualización UI: <strong id="uiUpdatedAt">-</strong></div>
+          <div class="pill">Último guardado runtime: <strong id="lastSavedAt">-</strong></div>
+        </div>
+
+        <div class="hero-summary">
+          <div class="metric-card">
+            <div class="metric-label">Meta Leads</div>
+            <div id="kpiMetaLeads" class="metric-value">0</div>
+            <div class="metric-sub">Captura efectiva de leads Meta</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-label">Google Conversions</div>
+            <div id="kpiGoogleConversions" class="metric-value">0</div>
+            <div class="metric-sub">Conversiones informadas por integración</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-label">TikTok Events</div>
+            <div id="kpiTikTokEvents" class="metric-value">0</div>
+            <div class="metric-sub">Eventos capturados desde TikTok</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-label">VIP Leads</div>
+            <div id="kpiVipLeads" class="metric-value">0</div>
+            <div class="metric-sub">Leads de mayor valor detectados</div>
+          </div>
         </div>
       </div>
 
-      <div class="actions">
-        <button id="refreshBtn">Actualizar</button>
-        <button id="toggleAutoBtn" class="secondary">Auto refresh: ON</button>
-      </div>
-    </div>
-
-    <div id="errorBanner" class="error-banner"></div>
-
-    <div class="statusbar">
-      <div class="card stat">
-        <div class="stat-label">Meta Leads</div>
-        <div id="statMetaLeads" class="stat-value">0</div>
-      </div>
-      <div class="card stat">
-        <div class="stat-label">Google Conversions</div>
-        <div id="statGoogleConversions" class="stat-value">0</div>
-      </div>
-      <div class="card stat">
-        <div class="stat-label">TikTok Events</div>
-        <div id="statTikTokEvents" class="stat-value">0</div>
-      </div>
-      <div class="card stat">
-        <div class="stat-label">VIP Leads</div>
-        <div id="statVipLeads" class="stat-value">0</div>
-      </div>
-    </div>
-
-    <div class="grid">
-      <div class="stack">
-        <section class="card panel">
-          <h2>Resumen del sistema</h2>
+      <aside class="ops-box">
+        <h2>Estado operativo</h2>
+        <div class="kv-list">
           <div class="kv">
             <div class="k">Aplicación</div>
             <div id="appName" class="v">-</div>
           </div>
           <div class="kv">
-            <div class="k">Versión</div>
-            <div id="appVersion" class="v">-</div>
-          </div>
-          <div class="kv">
-            <div class="k">Inicio</div>
+            <div class="k">Inicio servicio</div>
             <div id="startedAt" class="v">-</div>
           </div>
           <div class="kv">
-            <div class="k">Último guardado</div>
-            <div id="lastSavedAt" class="v">-</div>
+            <div class="k">Uptime</div>
+            <div id="uptimeText" class="v">-</div>
           </div>
           <div class="kv">
             <div class="k">Archivo de estado</div>
             <div id="stateFilePath" class="v">-</div>
           </div>
+          <div class="kv">
+            <div class="k">Persistencia</div>
+            <div id="persistenceStatus" class="v">-</div>
+          </div>
+          <div class="kv">
+            <div class="k">Estado dirty</div>
+            <div id="dirtyStatus" class="v">-</div>
+          </div>
+          <div class="kv">
+            <div class="k">Último intento guardado</div>
+            <div id="lastPersistAttemptAt" class="v">-</div>
+          </div>
+          <div class="kv">
+            <div class="k">Último guardado OK</div>
+            <div id="lastPersistSuccessAt" class="v">-</div>
+          </div>
+          <div class="kv">
+            <div class="k">Último error persistencia</div>
+            <div id="lastPersistError" class="v">-</div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="layout">
+      <div class="left-stack">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>KPIs por canal</h2>
+            <div class="panel-note">Lectura inmediata de adquisición y actividad por fuente</div>
+          </div>
+          <div class="channel-grid" id="channelsGrid"></div>
         </section>
 
-        <section class="card panel">
-          <h2>Madurez operativa</h2>
-          <div id="maturityList" class="meter-list"></div>
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Madurez operativa</h2>
+            <div class="panel-note">Capacidad instalada del sistema y nivel de avance</div>
+          </div>
+          <div id="maturityBars" class="bar-list"></div>
         </section>
 
-        <section class="card panel">
-          <h2>Métricas acumuladas</h2>
-          <div class="kv">
-            <div class="k">Google Lead Forms</div>
-            <div id="metricGoogleLeadForms" class="v">0</div>
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Cumplimiento de metas</h2>
+            <div class="panel-note">Progreso contra objetivos definidos en runtime</div>
           </div>
-          <div class="kv">
-            <div class="k">Web Form Leads</div>
-            <div id="metricWebForms" class="v">0</div>
-          </div>
-          <div class="kv">
-            <div class="k">Social Mentions</div>
-            <div id="metricSocialMentions" class="v">0</div>
-          </div>
-          <div class="kv">
-            <div class="k">Autores únicos</div>
-            <div id="metricSocialAuthors" class="v">0</div>
-          </div>
+          <div id="goalsGrid" class="goal-grid"></div>
         </section>
 
-        <section class="card panel">
-          <h2>Módulos</h2>
-          <div id="modulesList" class="pill-grid"></div>
-        </section>
-
-        <section class="card panel">
-          <h2>Metas</h2>
-          <div class="kv">
-            <div class="k">Autores sociales objetivo</div>
-            <div id="goalSocialAuthorsTarget" class="v">-</div>
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Módulos y cobertura funcional</h2>
+            <div class="panel-note">Visibilidad rápida del estado de cada componente</div>
           </div>
-          <div class="kv">
-            <div class="k">Meta lead inicial</div>
-            <div id="goalFirstMetaLeadTarget" class="v">-</div>
-          </div>
-          <div class="kv">
-            <div class="k">Google conversion inicial</div>
-            <div id="goalFirstGoogleConversionTarget" class="v">-</div>
-          </div>
-          <div class="kv">
-            <div class="k">TikTok event inicial</div>
-            <div id="goalFirstTikTokEventTarget" class="v">-</div>
-          </div>
-          <div class="kv">
-            <div class="k">Google lead inicial</div>
-            <div id="goalFirstGoogleLeadTarget" class="v">-</div>
-          </div>
-          <div class="kv">
-            <div class="k">Web lead inicial</div>
-            <div id="goalFirstWebLeadTarget" class="v">-</div>
-          </div>
+          <div id="modulesGrid" class="module-grid"></div>
         </section>
       </div>
 
-      <section class="card panel">
-        <h2>Auditoría reciente</h2>
-        <div class="audit-wrap">
-          <div id="auditList" class="audit-list"></div>
-          <div id="auditEmpty" class="empty" style="display:none;">No hay eventos de auditoría aún.</div>
-        </div>
-      </section>
-    </div>
+      <div class="right-stack">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Alertas automáticas</h2>
+            <div class="panel-note">Prioridad operativa y focos de intervención</div>
+          </div>
+          <div id="alertsGrid" class="alerts-grid"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Auditoría reciente</h2>
+            <div class="panel-note">Eventos más recientes para diagnóstico y trazabilidad</div>
+          </div>
+          <div id="timeline" class="timeline"></div>
+          <div id="timelineEmpty" class="empty" style="display:none;">No hay eventos de auditoría disponibles.</div>
+        </section>
+      </div>
+    </section>
 
     <div class="footer">
-      ACTIVA Unified CXM · Panel de monitoreo en tiempo real
+      ACTIVA Unified CXM · Command Center · Monitoreo automático en tiempo real
     </div>
   </div>
 
   <script>
-    const state = {
+    const UI = {
       autoRefresh: true,
+      intervalMs: 15000,
       intervalId: null,
+      lastSummary: null,
+      lastHealth: null,
     };
 
-    function fmtDate(value) {
-      if (!value) return "-";
-      const d = new Date(value);
-      if (Number.isNaN(d.getTime())) return String(value);
-      return d.toLocaleString("es-CL");
+    function $(id) {
+      return document.getElementById(id);
+    }
+
+    function safeText(value, fallback = "-") {
+      if (value === null || value === undefined || value === "") return fallback;
+      return String(value);
     }
 
     function fmtNumber(value) {
       return new Intl.NumberFormat("es-CL").format(Number(value || 0));
     }
 
-    function safeText(value) {
-      return value == null || value === "" ? "-" : String(value);
+    function fmtDate(value) {
+      if (!value) return "-";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return safeText(value);
+      return d.toLocaleString("es-CL");
+    }
+
+    function fmtDuration(seconds) {
+      const s = Number(seconds || 0);
+      if (!Number.isFinite(s) || s < 0) return "-";
+      const days = Math.floor(s / 86400);
+      const hours = Math.floor((s % 86400) / 3600);
+      const minutes = Math.floor((s % 3600) / 60);
+      const rem = Math.floor(s % 60);
+      const parts = [];
+      if (days) parts.push(`${days}d`);
+      if (hours || days) parts.push(`${hours}h`);
+      if (minutes || hours || days) parts.push(`${minutes}m`);
+      parts.push(`${rem}s`);
+      return parts.join(" ");
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
     }
 
     function setText(id, value) {
-      const el = document.getElementById(id);
+      const el = $(id);
       if (el) el.textContent = safeText(value);
     }
 
-    function setHealth(ok, text) {
-      const dot = document.getElementById("healthDot");
-      const label = document.getElementById("healthText");
-
+    function setSystemStatus(ok, text) {
+      const dot = $("systemDot");
+      const label = $("systemStatusText");
       dot.className = "dot " + (ok ? "ok" : "bad");
       label.textContent = text;
     }
 
     function showError(message) {
-      const banner = document.getElementById("errorBanner");
-      banner.style.display = "block";
-      banner.textContent = message;
+      const el = $("errorBanner");
+      el.style.display = "block";
+      el.textContent = safeText(message, "Error inesperado.");
     }
 
     function clearError() {
-      const banner = document.getElementById("errorBanner");
-      banner.style.display = "none";
-      banner.textContent = "";
+      const el = $("errorBanner");
+      el.style.display = "none";
+      el.textContent = "";
+    }
+
+    function percentage(current, target) {
+      const c = Number(current || 0);
+      const t = Number(target || 0);
+      if (!t || t <= 0) return 0;
+      return Math.max(0, Math.min(100, Math.round((c / t) * 100)));
+    }
+
+    function badgeClassByState(value) {
+      const v = String(value || "").toLowerCase();
+      if (v === "active") return "ok";
+      if (v === "partial") return "warn";
+      if (v === "pending") return "bad";
+      return "info";
+    }
+
+    function renderChannels(metrics = {}, goals = {}, modules = {}) {
+      const grid = $("channelsGrid");
+      grid.innerHTML = "";
+
+      const items = [
+        {
+          name: "Meta Ads",
+          status: metrics.metaLeads > 0 ? "ok" : (modules.metaAds === "active" ? "warn" : "bad"),
+          tag: modules.metaAds || "unknown",
+          a: ["Leads", fmtNumber(metrics.metaLeads)],
+          b: ["Meta inicial", `${percentage(metrics.metaLeads, goals.firstMetaLeadTarget)}%`],
+        },
+        {
+          name: "Google Ads",
+          status: metrics.googleConversions > 0 ? "ok" : (modules.googleAds === "active" ? "warn" : "bad"),
+          tag: modules.googleAds || "unknown",
+          a: ["Conversions", fmtNumber(metrics.googleConversions)],
+          b: ["Meta inicial", `${percentage(metrics.googleConversions, goals.firstGoogleConversionTarget)}%`],
+        },
+        {
+          name: "TikTok Ads",
+          status: metrics.tiktokEvents > 0 ? "ok" : (modules.tiktokAds === "active" ? "warn" : "bad"),
+          tag: modules.tiktokAds || "unknown",
+          a: ["Eventos", fmtNumber(metrics.tiktokEvents)],
+          b: ["Meta inicial", `${percentage(metrics.tiktokEvents, goals.firstTikTokEventTarget)}%`],
+        },
+        {
+          name: "Google Lead Forms",
+          status: (metrics.googleLeadFormLeads ?? metrics.googleLeadForms ?? 0) > 0 ? "ok" : (modules.googleLeadForms === "active" ? "warn" : "bad"),
+          tag: modules.googleLeadForms || "unknown",
+          a: ["Leads", fmtNumber(metrics.googleLeadFormLeads ?? metrics.googleLeadForms ?? 0)],
+          b: ["Meta inicial", `${percentage(metrics.googleLeadFormLeads ?? metrics.googleLeadForms ?? 0, goals.firstGoogleLeadTarget)}%`],
+        },
+        {
+          name: "Web Forms",
+          status: (metrics.webFormLeads ?? metrics.webForms ?? 0) > 0 ? "ok" : (modules.webForms === "active" ? "warn" : "bad"),
+          tag: modules.webForms || "unknown",
+          a: ["Leads", fmtNumber(metrics.webFormLeads ?? metrics.webForms ?? 0)],
+          b: ["Meta inicial", `${percentage(metrics.webFormLeads ?? metrics.webForms ?? 0, goals.firstWebLeadTarget)}%`],
+        },
+        {
+          name: "Social Listening",
+          status: metrics.socialMentions > 0 ? "ok" : (modules.socialListening === "partial" ? "warn" : "bad"),
+          tag: modules.socialListening || "unknown",
+          a: ["Menciones", fmtNumber(metrics.socialMentions)],
+          b: ["Autores únicos", fmtNumber(metrics.socialUniqueAuthors)],
+        },
+      ];
+
+      items.forEach((item) => {
+        const card = document.createElement("div");
+        card.className = "channel-card";
+        card.innerHTML = `
+          <div class="channel-top">
+            <div class="channel-title">${escapeHtml(item.name)}</div>
+            <span class="badge ${item.status}">${escapeHtml(item.tag)}</span>
+          </div>
+          <div class="mini-kpi">
+            <div class="mini">
+              <div class="l">${escapeHtml(item.a[0])}</div>
+              <div class="v">${escapeHtml(item.a[1])}</div>
+            </div>
+            <div class="mini">
+              <div class="l">${escapeHtml(item.b[0])}</div>
+              <div class="v">${escapeHtml(item.b[1])}</div>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
     }
 
     function renderMaturity(maturity = {}) {
-      const list = document.getElementById("maturityList");
-      list.innerHTML = "";
+      const container = $("maturityBars");
+      container.innerHTML = "";
 
       const entries = [
         ["Ads Integration", maturity.adsIntegration],
@@ -592,50 +913,202 @@
         ["Command Center", maturity.commandCenter],
       ];
 
-      for (const [label, rawValue] of entries) {
-        const value = Number(rawValue || 0);
-
+      entries.forEach(([label, raw]) => {
+        const value = Math.max(0, Math.min(100, Number(raw || 0)));
         const row = document.createElement("div");
-        row.className = "meter-row";
-
+        row.className = "bar-row";
         row.innerHTML = `
-          <div class="meter-head">
-            <span>${label}</span>
+          <div class="bar-head">
+            <span>${escapeHtml(label)}</span>
             <strong>${value}%</strong>
           </div>
           <div class="bar">
-            <span style="width:${Math.max(0, Math.min(100, value))}%"></span>
+            <span style="width:${value}%"></span>
           </div>
         `;
-
-        list.appendChild(row);
-      }
-    }
-
-    function renderModules(modules = {}) {
-      const list = document.getElementById("modulesList");
-      list.innerHTML = "";
-
-      Object.entries(modules).forEach(([key, value]) => {
-        const pill = document.createElement("div");
-        pill.className = "pill";
-
-        const stateClass = String(value || "").toLowerCase();
-
-        pill.innerHTML = `
-          <span>${key}</span>
-          <span class="state ${stateClass}">${safeText(value)}</span>
-        `;
-
-        list.appendChild(pill);
+        container.appendChild(row);
       });
     }
 
-    function renderAudit(audit = []) {
-      const list = document.getElementById("auditList");
-      const empty = document.getElementById("auditEmpty");
+    function renderGoals(metrics = {}, goals = {}) {
+      const grid = $("goalsGrid");
+      grid.innerHTML = "";
 
-      list.innerHTML = "";
+      const items = [
+        {
+          name: "Primer Meta Lead",
+          current: Number(metrics.metaLeads || 0),
+          target: Number(goals.firstMetaLeadTarget || 0),
+        },
+        {
+          name: "Primera Google Conversion",
+          current: Number(metrics.googleConversions || 0),
+          target: Number(goals.firstGoogleConversionTarget || 0),
+        },
+        {
+          name: "Primer TikTok Event",
+          current: Number(metrics.tiktokEvents || 0),
+          target: Number(goals.firstTikTokEventTarget || 0),
+        },
+        {
+          name: "Primer Google Lead",
+          current: Number(metrics.googleLeadFormLeads ?? metrics.googleLeadForms ?? 0),
+          target: Number(goals.firstGoogleLeadTarget || 0),
+        },
+        {
+          name: "Primer Web Lead",
+          current: Number(metrics.webFormLeads ?? metrics.webForms ?? 0),
+          target: Number(goals.firstWebLeadTarget || 0),
+        },
+        {
+          name: "Autores sociales objetivo",
+          current: Number(metrics.socialUniqueAuthors || 0),
+          target: Number(goals.socialAuthorsTarget || 0),
+        },
+      ];
+
+      items.forEach((item) => {
+        const pct = percentage(item.current, item.target);
+        const card = document.createElement("div");
+        card.className = "goal-card";
+        card.innerHTML = `
+          <div class="goal-top">
+            <div class="goal-name">${escapeHtml(item.name)}</div>
+            <strong>${pct}%</strong>
+          </div>
+          <div class="goal-values">Actual: ${fmtNumber(item.current)} · Objetivo: ${fmtNumber(item.target)}</div>
+          <div class="bar" style="margin-top:10px;">
+            <span style="width:${pct}%"></span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderModules(modules = {}) {
+      const grid = $("modulesGrid");
+      grid.innerHTML = "";
+
+      Object.entries(modules).forEach(([name, value]) => {
+        const stateClass = String(value || "").toLowerCase();
+        const item = document.createElement("div");
+        item.className = "module-item";
+        item.innerHTML = `
+          <span>${escapeHtml(name)}</span>
+          <span class="module-state ${stateClass}">${escapeHtml(String(value || "unknown"))}</span>
+        `;
+        grid.appendChild(item);
+      });
+    }
+
+    function buildAlerts(summary, health) {
+      const metrics = summary?.metrics || {};
+      const modules = summary?.modules || {};
+      const maturity = summary?.maturity || {};
+      const ops = summary?.ops || {};
+      const alerts = [];
+
+      if (!health?.ok) {
+        alerts.push({
+          level: "bad",
+          title: "Sistema no saludable",
+          body: "El endpoint /health no reporta estado OK. Revisar servicio, inicialización o conectividad interna.",
+        });
+      } else {
+        alerts.push({
+          level: "ok",
+          title: "Healthcheck operativo",
+          body: `La plataforma responde correctamente. Uptime actual: ${fmtDuration(health.uptimeSeconds || 0)}.`,
+        });
+      }
+
+      if (ops.lastPersistError) {
+        alerts.push({
+          level: "bad",
+          title: "Persistencia con error",
+          body: `Existe un error reciente al guardar el estado. Revisar storage, permisos o ruta del archivo de estado.`,
+        });
+      } else if (ops.stateFilePath) {
+        alerts.push({
+          level: "ok",
+          title: "Persistencia activa",
+          body: `El runtime tiene ruta de persistencia definida: ${ops.stateFilePath}.`,
+        });
+      }
+
+      if ((metrics.metaLeads || 0) === 0 && modules.metaAds === "active") {
+        alerts.push({
+          level: "warn",
+          title: "Meta Ads activo sin lead efectivo",
+          body: "La integración figura activa, pero aún no hay leads Meta contabilizados. Validar permisos, retrieval y formularios.",
+        });
+      }
+
+      if ((metrics.googleConversions || 0) === 0 && modules.googleAds === "active") {
+        alerts.push({
+          level: "warn",
+          title: "Google Ads sin conversiones",
+          body: "El canal Google Ads está activo, pero todavía no registra conversiones acumuladas.",
+        });
+      }
+
+      if ((metrics.vipLeads || 0) === 0) {
+        alerts.push({
+          level: "warn",
+          title: "Sin VIP leads detectados",
+          body: "Todavía no hay leads de alto valor clasificados. Revisar scoring, calidad de tráfico y segmentación.",
+        });
+      } else {
+        alerts.push({
+          level: "ok",
+          title: "VIP leads detectados",
+          body: `Se han identificado ${fmtNumber(metrics.vipLeads)} leads de mayor valor.`,
+        });
+      }
+
+      if ((maturity.crmAutomation || 0) < 70) {
+        alerts.push({
+          level: "warn",
+          title: "Madurez CRM/automatización bajo objetivo",
+          body: `CRM Automation está en ${Number(maturity.crmAutomation || 0)}%. Conviene revisar routing, dedupe, scoring y cierre con CRM.`,
+        });
+      }
+
+      if ((metrics.socialMentions || 0) === 0 && modules.socialListening !== "pending") {
+        alerts.push({
+          level: "info",
+          title: "Social listening aún sin señales",
+          body: "El módulo no está en pending, pero todavía no hay menciones acumuladas. Puede faltar captura real o fuentes externas.",
+        });
+      }
+
+      return alerts.slice(0, 8);
+    }
+
+    function renderAlerts(summary, health) {
+      const grid = $("alertsGrid");
+      grid.innerHTML = "";
+
+      const alerts = buildAlerts(summary, health);
+
+      alerts.forEach((item) => {
+        const card = document.createElement("div");
+        card.className = `alert-card ${item.level}`;
+        card.innerHTML = `
+          <div class="alert-top">
+            <div class="alert-title">${escapeHtml(item.title)}</div>
+            <span class="badge ${item.level}">${escapeHtml(item.level)}</span>
+          </div>
+          <div class="alert-body">${escapeHtml(item.body)}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderTimeline(audit = []) {
+      const timeline = $("timeline");
+      const empty = $("timelineEmpty");
+      timeline.innerHTML = "";
 
       if (!Array.isArray(audit) || audit.length === 0) {
         empty.style.display = "block";
@@ -645,51 +1118,70 @@
       empty.style.display = "none";
 
       audit.forEach((item) => {
-        const box = document.createElement("div");
-        box.className = "audit-item";
+        const type = item.type || item.event || "unknown_event";
+        const time = item.createdAt || item.timestamp || null;
 
-        const level = item.level ? `<span class="tag">level: ${item.level}</span>` : "";
-        const module = item.module ? `<span class="tag">module: ${item.module}</span>` : "";
-        const requestId = item.requestId ? `<span class="tag">requestId: ${item.requestId}</span>` : "";
-
-        box.innerHTML = `
-          <div class="audit-top">
-            <div class="audit-type">${safeText(item.type || item.event)}</div>
-            <div class="audit-time">${fmtDate(item.createdAt || item.timestamp)}</div>
+        const node = document.createElement("div");
+        node.className = "timeline-item";
+        node.innerHTML = `
+          <div class="timeline-head">
+            <div class="timeline-type">${escapeHtml(type)}</div>
+            <div class="timeline-time">${escapeHtml(fmtDate(time))}</div>
           </div>
-          <div class="audit-meta">
-            ${level}
-            ${module}
-            ${requestId}
+          <div class="timeline-tags">
+            ${item.level ? `<span class="tag">level: ${escapeHtml(item.level)}</span>` : ""}
+            ${item.module ? `<span class="tag">module: ${escapeHtml(item.module)}</span>` : ""}
+            ${item.requestId ? `<span class="tag">requestId: ${escapeHtml(item.requestId)}</span>` : ""}
           </div>
           <pre>${escapeHtml(JSON.stringify(item.detail || item, null, 2))}</pre>
         `;
-
-        list.appendChild(box);
+        timeline.appendChild(node);
       });
-    }
-
-    function escapeHtml(text) {
-      return String(text)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;");
     }
 
     async function fetchHealth() {
       const res = await fetch("/health", { cache: "no-store" });
-      if (!res.ok) {
-        throw new Error("No fue posible consultar /health");
-      }
+      if (!res.ok) throw new Error("No fue posible consultar /health");
       return res.json();
     }
 
     async function fetchSummary() {
       const res = await fetch("/api/dashboard/summary", { cache: "no-store" });
-      if (!res.ok) {
-        throw new Error("No fue posible consultar /api/dashboard/summary");
-      }
+      if (!res.ok) throw new Error("No fue posible consultar /api/dashboard/summary");
       return res.json();
+    }
+
+    function updateHeader(summary, health) {
+      const persistence = health?.persistence || {};
+      const ops = summary?.ops || {};
+
+      setText("appName", summary?.app || health?.app || "ACTIVA Unified CXM");
+      setText("appVersion", summary?.version || health?.version || "-");
+      setText("startedAt", fmtDate(summary?.startedAt || health?.startedAt));
+      setText("uiUpdatedAt", fmtDate(new Date().toISOString()));
+      setText("lastSavedAt", fmtDate(summary?.lastSavedAt || summary?.updatedAt || ops?.lastPersistSuccessAt));
+      setText("uptimeText", fmtDuration(health?.uptimeSeconds || 0));
+      setText("stateFilePath", ops?.stateFilePath || persistence?.stateFilePath || "-");
+
+      const lastError = ops?.lastPersistError || persistence?.lastPersistError || null;
+      setText("lastPersistError", lastError ? JSON.stringify(lastError) : "Sin errores recientes");
+      setText("lastPersistAttemptAt", fmtDate(ops?.lastPersistAttemptAt));
+      setText("lastPersistSuccessAt", fmtDate(ops?.lastPersistSuccessAt || persistence?.lastPersistSuccessAt));
+      setText("dirtyStatus", String(ops?.dirty ?? persistence?.dirty ?? false));
+      setText("persistenceStatus", lastError ? "Con observaciones" : "Operativa");
+
+      if (health?.ok) {
+        setSystemStatus(true, `Sistema operativo · Uptime ${fmtDuration(health.uptimeSeconds || 0)}`);
+      } else {
+        setSystemStatus(false, "Sistema con observaciones");
+      }
+    }
+
+    function updateKpis(metrics = {}) {
+      setText("kpiMetaLeads", fmtNumber(metrics.metaLeads || 0));
+      setText("kpiGoogleConversions", fmtNumber(metrics.googleConversions || 0));
+      setText("kpiTikTokEvents", fmtNumber(metrics.tiktokEvents || 0));
+      setText("kpiVipLeads", fmtNumber(metrics.vipLeads || 0));
     }
 
     async function refreshDashboard() {
@@ -703,80 +1195,44 @@
           fetchSummary(),
         ]);
 
-        setHealth(
-          Boolean(health.ok),
-          health.ok
-            ? `Sistema operativo · Uptime ${fmtNumber(health.uptimeSeconds || 0)} s`
-            : "Sistema con observaciones"
-        );
+        UI.lastHealth = health;
+        UI.lastSummary = summary;
 
-        setText("appName", summary.app || health.app || "ACTIVA Unified CXM");
-        setText("appVersion", summary.version || health.version || "-");
-        setText("startedAt", fmtDate(summary.startedAt || health.startedAt));
-        setText("lastSavedAt", fmtDate(summary.lastSavedAt || summary.updatedAt));
-
-        const stateFilePath =
-          summary?.ops?.stateFilePath ||
-          health?.persistence?.stateFilePath ||
-          "-";
-
-        setText("stateFilePath", stateFilePath);
-
-        const metrics = summary.metrics || {};
-        setText("statMetaLeads", fmtNumber(metrics.metaLeads));
-        setText("statGoogleConversions", fmtNumber(metrics.googleConversions));
-        setText("statTikTokEvents", fmtNumber(metrics.tiktokEvents));
-        setText("statVipLeads", fmtNumber(metrics.vipLeads));
-
-        setText("metricGoogleLeadForms", fmtNumber(
-          metrics.googleLeadFormLeads ?? metrics.googleLeadForms ?? 0
-        ));
-        setText("metricWebForms", fmtNumber(
-          metrics.webFormLeads ?? metrics.webForms ?? 0
-        ));
-        setText("metricSocialMentions", fmtNumber(metrics.socialMentions));
-        setText("metricSocialAuthors", fmtNumber(metrics.socialUniqueAuthors));
-
-        const goals = summary.goals || {};
-        setText("goalSocialAuthorsTarget", fmtNumber(goals.socialAuthorsTarget));
-        setText("goalFirstMetaLeadTarget", fmtNumber(goals.firstMetaLeadTarget));
-        setText("goalFirstGoogleConversionTarget", fmtNumber(goals.firstGoogleConversionTarget));
-        setText("goalFirstTikTokEventTarget", fmtNumber(goals.firstTikTokEventTarget));
-        setText("goalFirstGoogleLeadTarget", fmtNumber(goals.firstGoogleLeadTarget));
-        setText("goalFirstWebLeadTarget", fmtNumber(goals.firstWebLeadTarget));
-
+        updateHeader(summary, health);
+        updateKpis(summary.metrics || {});
+        renderChannels(summary.metrics || {}, summary.goals || {}, summary.modules || {});
         renderMaturity(summary.maturity || {});
+        renderGoals(summary.metrics || {}, summary.goals || {});
         renderModules(summary.modules || {});
-        renderAudit(summary.audit || []);
+        renderAlerts(summary, health);
+        renderTimeline(summary.audit || []);
       } catch (error) {
         console.error(error);
-        setHealth(false, "Error consultando el estado de la plataforma");
-        showError(error.message || "Error inesperado cargando el panel.");
+        setSystemStatus(false, "Error consultando el estado de la plataforma");
+        showError(error?.message || "Error inesperado cargando el panel.");
       } finally {
         document.body.classList.remove("loading");
       }
     }
 
     function applyAutoRefresh() {
-      const btn = document.getElementById("toggleAutoBtn");
-
-      if (state.intervalId) {
-        clearInterval(state.intervalId);
-        state.intervalId = null;
+      if (UI.intervalId) {
+        clearInterval(UI.intervalId);
+        UI.intervalId = null;
       }
 
-      if (state.autoRefresh) {
-        state.intervalId = setInterval(refreshDashboard, 15000);
-        btn.textContent = "Auto refresh: ON";
+      if (UI.autoRefresh) {
+        UI.intervalId = setInterval(refreshDashboard, UI.intervalMs);
+        $("autoRefreshBtn").textContent = "Auto refresh: ON";
       } else {
-        btn.textContent = "Auto refresh: OFF";
+        $("autoRefreshBtn").textContent = "Auto refresh: OFF";
       }
     }
 
-    document.getElementById("refreshBtn").addEventListener("click", refreshDashboard);
+    $("refreshBtn").addEventListener("click", refreshDashboard);
 
-    document.getElementById("toggleAutoBtn").addEventListener("click", () => {
-      state.autoRefresh = !state.autoRefresh;
+    $("autoRefreshBtn").addEventListener("click", () => {
+      UI.autoRefresh = !UI.autoRefresh;
       applyAutoRefresh();
     });
 
