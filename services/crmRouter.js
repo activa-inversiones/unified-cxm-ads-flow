@@ -1,6 +1,7 @@
-import { upsertLead } from '../intelligence/dedupeEngine.js';
+﻿import { upsertLead } from '../intelligence/dedupeEngine.js';
 import { getFinalLeadScore } from '../intelligence/leadScoring.js';
 import { sendLeadToZoho } from './zohoCRM.js';
+import { pushLeadEvent, salesOsConfigured } from './salesOsBridge.js';
 
 function normalizeGenericLead(lead = {}, channel = 'unknown') {
   return {
@@ -32,14 +33,50 @@ function normalizeGenericLead(lead = {}, channel = 'unknown') {
   };
 }
 
+function buildSalesOsLeadPayload(record, scoreInfo, channel, zohoResult) {
+  const source = record.source || channel || 'unknown';
+  return {
+    event_type: `${channel}_lead_received`,
+    source,
+    channel,
+    name: record.name || '',
+    lead_name: record.name || '',
+    email: record.email || '',
+    phone: record.phone || '',
+    city: record.city || '',
+    comuna: record.city || '',
+    project_type: record.project_type || '',
+    product_interest: record.project_type || record.form_name || 'ventanas',
+    windows_qty: record.windows_qty || '',
+    budget: record.budget || '',
+    message: record.message || record.notes || '',
+    status: scoreInfo.clase === 'VIP' ? 'hot' : 'new',
+    zoho_lead_id: zohoResult?.leadId || '',
+    external_id: record.lead_id || '',
+    metadata: {
+      company: record.company || '',
+      form_id: record.form_id || '',
+      page_id: record.page_id || '',
+      gclid: record.gclid || '',
+      fbclid: record.fbclid || '',
+      ttclid: record.ttclid || '',
+      utm_source: record.utm_source || '',
+      utm_medium: record.utm_medium || '',
+      utm_campaign: record.utm_campaign || '',
+      utm_content: record.utm_content || '',
+      page_url: record.page_url || '',
+      score: scoreInfo.score,
+      score_class: scoreInfo.clase
+    }
+  };
+}
+
 export async function processInboundLead(axios, runtime, addAudit, leadInfo, options = {}) {
   const channel = options.channel || 'unknown';
   const sendToCRM = options.sendToCRM !== false;
 
   const normalizedLead = normalizeGenericLead(leadInfo, channel);
-
   const dedupe = upsertLead(runtime, normalizedLead, channel);
-
   const finalScore = await getFinalLeadScore(axios, dedupe.record);
   dedupe.record.lastScore = finalScore;
 
@@ -64,7 +101,38 @@ export async function processInboundLead(axios, runtime, addAudit, leadInfo, opt
     if (zohoResult.ok) {
       dedupe.record.zohoSynced = true;
       dedupe.record.zohoSyncCount = (dedupe.record.zohoSyncCount || 0) + 1;
+      dedupe.record.zohoLeadId = zohoResult.leadId || dedupe.record.zohoLeadId || '';
     }
+  }
+
+  let salesOsResult = { ok: false, skipped: true, reason: 'test_or_missing_config' };
+  if (!normalizedLead.test_mode && salesOsConfigured()) {
+    salesOsResult = await pushLeadEvent(
+      buildSalesOsLeadPayload(dedupe.record, finalScore, channel, zohoResult)
+    );
+  }
+
+  if (salesOsResult.ok) {
+    dedupe.record.salesOsSynced = true;
+    dedupe.record.salesOsSyncCount = (dedupe.record.salesOsSyncCount || 0) + 1;
+    addAudit('sales_os_lead_pushed', {
+      channel,
+      action: dedupe.action,
+      lead_id: dedupe.record.lead_id || '',
+      email: dedupe.record.email || '',
+      phone: dedupe.record.phone || '',
+      salesOsOk: true
+    });
+  } else {
+    addAudit('sales_os_lead_skipped', {
+      channel,
+      action: dedupe.action,
+      lead_id: dedupe.record.lead_id || '',
+      email: dedupe.record.email || '',
+      phone: dedupe.record.phone || '',
+      salesOsOk: false,
+      reason: salesOsResult.reason || salesOsResult.error || 'skipped'
+    });
   }
 
   addAudit('crm_router_processed', {
@@ -76,7 +144,8 @@ export async function processInboundLead(axios, runtime, addAudit, leadInfo, opt
     enrichedFields: dedupe.enrichedFields,
     score: finalScore.clase,
     scoreValue: finalScore.score,
-    zohoOk: zohoResult.ok
+    zohoOk: zohoResult.ok,
+    salesOsOk: salesOsResult.ok
   });
 
   return {
@@ -86,6 +155,7 @@ export async function processInboundLead(axios, runtime, addAudit, leadInfo, opt
     enrichedFields: dedupe.enrichedFields,
     score: finalScore,
     zoho: zohoResult,
+    salesOs: salesOsResult,
     record: dedupe.record
   };
 }

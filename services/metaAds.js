@@ -1,6 +1,6 @@
-import axios from 'axios';
-import { normalizeLeadInfoFromMeta, getFinalLeadScore } from '../intelligence/leadScoring.js';
-import { sendLeadToZoho } from './zohoCRM.js';
+﻿import axios from 'axios';
+import { normalizeLeadInfoFromMeta } from '../intelligence/leadScoring.js';
+import { processInboundLead } from './crmRouter.js';
 import { sleep } from '../utils/helpers.js';
 
 const CONFIG = {
@@ -45,9 +45,6 @@ export function registerMetaRoutes(app, runtime, addAudit) {
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
 
-    console.log('🔎 [META VERIFY] mode:', mode);
-    console.log('🔎 [META VERIFY] token_match:', token === CONFIG.verifyToken);
-
     if (mode === 'subscribe' && token === CONFIG.verifyToken) {
       addAudit('meta_webhook_verified');
       return res.status(200).send(challenge);
@@ -59,12 +56,9 @@ export function registerMetaRoutes(app, runtime, addAudit) {
   app.post('/webhook/meta', async (req, res) => {
     res.sendStatus(200);
 
-    console.log('📩 [META RAW BODY]:', JSON.stringify(req.body, null, 2));
-
     const change = req.body?.entry?.[0]?.changes?.[0]?.value || null;
 
     if (!change) {
-      console.warn('⚠️ [META] Body sin change.value');
       addAudit('meta_event_without_change', { body: req.body });
       return;
     }
@@ -75,27 +69,20 @@ export function registerMetaRoutes(app, runtime, addAudit) {
       page_id: pageId = null
     } = change;
 
-    console.log('🧪 [META EXTRACTED]', { leadId, formId, pageId });
-
     if (!leadId) {
-      console.warn('⚠️ [META] Evento sin leadId');
       addAudit('meta_event_without_lead', { formId, pageId });
       return;
     }
 
     if (leadId === CONFIG.fakeLeadId) {
-      console.warn('⚠️ [META] Lead fake de prueba detectado');
       addAudit('meta_fake_test_lead', { leadId, formId, pageId });
       return;
     }
 
     if (!CONFIG.accessToken) {
-      console.error('❌ [META] Falta META_ACCESS_TOKEN');
       addAudit('meta_missing_token', { leadId, formId, pageId });
       return;
     }
-
-    console.log(`🚀 [META] Iniciando proceso para Lead ID: ${leadId}`);
 
     const fetchLeadData = async (attempt = 1) => {
       try {
@@ -110,19 +97,15 @@ export function registerMetaRoutes(app, runtime, addAudit) {
           }
         );
 
-        console.log(`✅ [META GRAPH] Lead recuperado en intento ${attempt}`);
         return data;
       } catch (error) {
         const parsed = parseMetaError(error);
-
-        console.error(`❌ [META GRAPH ERROR] intento ${attempt}:`, JSON.stringify(parsed, null, 2));
 
         if (isPermissionError(parsed)) {
           throw new Error(`MISSING_PERMISSIONS: ${parsed.message}`);
         }
 
         if (attempt < CONFIG.maxRetries && isRetryableError(parsed)) {
-          console.log(`🔄 [META] Reintento ${attempt}/${CONFIG.maxRetries - 1} en ${CONFIG.retryDelayMs}ms...`);
           await sleep(CONFIG.retryDelayMs);
           return fetchLeadData(attempt + 1);
         }
@@ -133,47 +116,39 @@ export function registerMetaRoutes(app, runtime, addAudit) {
 
     try {
       const rawData = await fetchLeadData();
-
-      console.log('📥 [META GRAPH RESPONSE]:', JSON.stringify(rawData, null, 2));
-
       const leadInfo = normalizeLeadInfoFromMeta(rawData);
 
-      console.log('🧾 [LEAD NORMALIZED]:', JSON.stringify(leadInfo, null, 2));
-
-      const score = await getFinalLeadScore(axios, leadInfo);
-
-      console.log('🧠 [LEAD SCORE]:', JSON.stringify(score, null, 2));
-
-      const zoho = await sendLeadToZoho(axios, leadInfo, score);
-
-      console.log('📦 [ZOHO RESULT]:', JSON.stringify(zoho, null, 2));
-
       runtime.metrics.metaLeads += 1;
-      if (score.clase === 'VIP') {
-        runtime.metrics.vipLeads += 1;
-      }
+      addAudit('meta_lead_received', {
+        leadId,
+        formId,
+        pageId,
+        source: leadInfo.source
+      });
+
+      const result = await processInboundLead(
+        axios,
+        runtime,
+        addAudit,
+        leadInfo,
+        { channel: 'metaAds', sendToCRM: true }
+      );
 
       addAudit('meta_lead_success', {
         leadId,
         formId,
         pageId,
-        score: score.clase,
-        scoreValue: score.score,
-        zohoOk: zoho.ok
+        score: result.score.clase,
+        scoreValue: result.score.score,
+        zohoOk: result.zoho.ok,
+        salesOsOk: result.salesOs.ok
       });
-
-      console.log(`🏁 [META] Lead ${leadId} procesado correctamente.`);
     } catch (error) {
-      console.error('❌ [META FATAL]:', error.message);
-
       addAudit('meta_lead_error', {
         leadId,
         formId,
         pageId,
-        error: error.message,
-        hint: error.message.includes('MISSING_PERMISSIONS')
-          ? 'Meta recibió el webhook pero no permitió leer el lead real. Revisar leads_retrieval, access verification y app review.'
-          : 'Error no clasificado'
+        error: error.message
       });
     }
   });

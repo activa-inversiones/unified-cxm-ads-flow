@@ -1,1 +1,15 @@
+﻿
+node_modules
+
+.env
+
+.env.local
+
+backups/
+
+aplicar-*.ps1
+
+cerrar-*.ps1
+
+*.log
 
